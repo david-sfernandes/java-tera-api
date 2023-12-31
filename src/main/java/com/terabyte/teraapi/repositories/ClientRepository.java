@@ -4,13 +4,14 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.Client;
 import com.terabyte.teraapi.models.mappers.ClientRowMapper;
 
 @Repository
-public class ClientRepository {
+public class ClientRepository implements IRepository<Client> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
@@ -19,23 +20,24 @@ public class ClientRepository {
   private final String DELETE = "DELETE FROM client WHERE id = ?";
   private final String UPDATE = "UPDATE client SET name = ?, category = ?, is_active = ? WHERE id = ?";
   private final String UPSERT = """
-      DECLARE @id INT = ?, @name VARCHAR(120) = ?, @category VARCHAR(5) = ?, @is_active BIT = ?
+      DECLARE @id INT = ?, @name VARCHAR(120) = ?
       IF EXISTS ((SELECT * FROM client WHERE id = @id) = 1)
         BEGIN
-        UPDATE client SET name = @name, category = @category, is_active = @is_active WHERE id = @id
+        UPDATE client SET name = @name WHERE id = @id
         END
       ELSE
         BEGIN
-        INSERT INTO client (id, name, category, is_active) VALUES (@id, @name, @category, @is_active)
+        INSERT INTO client (id, name) VALUES (@id, @name)
         END
       """;
+  private final String GET_STATS = "SELECT * FROM device_client_stats;";
 
   public List<Client> getAll() {
     return jdbcTemplate.query(GET_ALL, new ClientRowMapper());
   }
 
-  public void create(Client client) {
-    jdbcTemplate.update(
+  public Integer create(Client client) {
+    return jdbcTemplate.update(
         CREATE,
         client.getId(),
         client.getName(),
@@ -48,12 +50,11 @@ public class ClientRepository {
         UPSERT,
         client.getId(),
         client.getName(),
-        client.getCategory(),
         client.getIsActive());
   }
 
-  public void update(Client client) {
-    jdbcTemplate.update(
+  public Integer update(Client client) {
+    return jdbcTemplate.update(
         UPDATE,
         client.getName(),
         client.getCategory(),
@@ -61,7 +62,22 @@ public class ClientRepository {
         client.getId());
   }
 
-  public void delete(Integer id) {
-    jdbcTemplate.update(DELETE, id);
+  public SqlRowSet getStats() {
+    return jdbcTemplate.queryForRowSet(GET_STATS);
+  }
+
+  public Integer delete(Integer id) {
+    return jdbcTemplate.update(DELETE, id);
+  }
+
+  public void batchUpsert(List<Client> clients) {
+    jdbcTemplate.batchUpdate(
+        UPSERT,
+        clients,
+        clients.size(),
+        (ps, client) -> {
+          ps.setInt(1, client.getId());
+          ps.setString(2, client.getName());
+        });
   }
 }

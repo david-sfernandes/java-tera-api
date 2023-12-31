@@ -24,4 +24,9 @@ public class ClientController {
   public void createClient(Client client) {
     clientRepository.create(client);
   }
+
+  @GetMapping("/stats")
+  public void getClientStats() {
+    clientRepository.getStats();
+  }
 }

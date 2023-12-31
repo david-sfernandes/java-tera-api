@@ -2,11 +2,10 @@
 CREATE TABLE IF NOT EXISTS `client` (
     `id` INT NOT NULL,
     `name` VARCHAR(120),
-    `category` VARCHAR(5),
+    `category` VARCHAR(5) DEFAULT NULL,
     `is_active` BIT DEFAULT 0,
     PRIMARY KEY (`id`)
-); 
-
+);
 CREATE TABLE IF NOT EXISTS `device` (
     `id` INT,
     `name` VARCHAR(100),
@@ -23,10 +22,10 @@ CREATE TABLE IF NOT EXISTS `device` (
     `is_active` BIT,
     `last_update` DATETIME,
     `last_sync` DATETIME,
-    FOREIGN KEY (`client_id`) REFERENCES `client` (`id`) ON DELETE SET NULL,
-    PRIMARY KEY (`id`)
-); 
-
+    FOREIGN KEY (`client_id`) REFERENCES `client` (`id`) ON DELETE
+    SET NULL,
+        PRIMARY KEY (`id`)
+);
 CREATE TABLE IF NOT EXISTS `ticket` (
     `id` INT NOT NULL,
     `code` INT,
@@ -34,11 +33,11 @@ CREATE TABLE IF NOT EXISTS `ticket` (
     `second_category` VARCHAR(100),
     `technician` VARCHAR(100),
     `desk` VARCHAR(30),
-    `device_id` VARCHAR(50),
+    `device_id` INT,
     `department` VARCHAR(30),
     `type` VARCHAR(30),
     `priority` VARCHAR(15),
-    `client_name` VARCHAR(100),
+    `client_id` INT,
     `contact` VARCHAR(150),
     `total_hours` VARCHAR(8),
     `origin` VARCHAR(50),
@@ -49,10 +48,12 @@ CREATE TABLE IF NOT EXISTS `ticket` (
     `creation_date` DATETIME,
     `resp_date` DATETIME,
     `solution_date` DATETIME,
-    FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE SET NULL,
-    PRIMARY KEY (`id`)
-); 
-
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE
+    SET NULL,
+    FOREIGN KEY (`client_id`) REFERENCES `client` (`id`) ON DELETE
+    SET NULL
+);
 CREATE TABLE IF NOT EXISTS `security_status` (
     `id` INT NOT NULL,
     `name` VARCHAR(100),
@@ -64,6 +65,27 @@ CREATE TABLE IF NOT EXISTS `security_status` (
     `is_managed_with_best` BIT,
     `is_policy_applied` BIT,
     `device_id` BIGINT,
-    FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE SET NULL,
-    PRIMARY KEY (`id`)
-)
+    FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE
+    SET NULL,
+        PRIMARY KEY (`id`)
+);
+CREATE VIEW `device_client_stats` AS
+SELECT c.name,
+    COUNT(d.id) AS "qtd",
+    SUM(
+        CASE
+            WHEN d.last_update > DATEADD(DAY, -45, GETDATE()) THEN 1
+            ELSE 0
+        END
+    ) AS "qtd_old",
+    COUNT(ss.id) AS "qtd_security",
+    c.category,
+    c.is_active
+FROM device d
+    LEFT JOIN client c ON c.id = d.client_id
+    LEFT JOIN security_status ss ON ss.device_id = d.id
+WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
+GROUP BY c.name,
+    c.category,
+    c.is_active
+ORDER BY c.name ASC;
