@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS `client` (
     `id` INT NOT NULL,
     `name` VARCHAR(120),
-    `client` VARCHAR(5),
+    `category` VARCHAR(5),
     `is_active` BIT DEFAULT 0,
     PRIMARY KEY (`id`)
 ); 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `ticket` (
     `technician` VARCHAR(100),
     `desk` VARCHAR(30),
     `device_id` VARCHAR(50),
-    `setor` VARCHAR(30),
+    `department` VARCHAR(30),
     `type` VARCHAR(30),
     `priority` VARCHAR(15),
     `client_name` VARCHAR(100),
