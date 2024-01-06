@@ -69,12 +69,12 @@ CREATE TABLE IF NOT EXISTS `security_status` (
     SET NULL,
         PRIMARY KEY (`id`)
 );
-CREATE VIEW `device_client_stats` AS
+CREATE OR REPLACE VIEW `device_client_stats` AS
 SELECT c.name,
     COUNT(d.id) AS "qtd",
     SUM(
         CASE
-            WHEN d.last_update > DATEADD(DAY, -45, GETDATE()) THEN 1
+            WHEN d.last_update > DATEADD(DAY, -45, CURRENT_DATE) THEN 1
             ELSE 0
         END
     ) AS "qtd_old",
