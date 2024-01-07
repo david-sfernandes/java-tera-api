@@ -19,16 +19,22 @@ public class ClientRepository implements IRepository<Client> {
   private final String CREATE = "INSERT INTO client (id, name, category, is_active) VALUES (?, ?, ?, ?)";
   private final String DELETE = "DELETE FROM client WHERE id = ?";
   private final String UPDATE = "UPDATE client SET name = ?, category = ?, is_active = ? WHERE id = ?";
+  private final String GET_BY_NAME = "SELECT * FROM client WHERE name = ?";
+  // private final String UPSERT_SQL = """
+  //     DECLARE @id INT = ?, @name VARCHAR(120) = ?
+  //     IF EXISTS ((SELECT * FROM client WHERE id = @id) = 1)
+  //       BEGIN
+  //       UPDATE client SET name = @name WHERE id = @id
+  //       END
+  //     ELSE
+  //       BEGIN
+  //       INSERT INTO client (id, name) VALUES (@id, @name)
+  //       END
+  //     """;
   private final String UPSERT = """
-      DECLARE @id INT = ?, @name VARCHAR(120) = ?
-      IF EXISTS ((SELECT * FROM client WHERE id = @id) = 1)
-        BEGIN
-        UPDATE client SET name = @name WHERE id = @id
-        END
-      ELSE
-        BEGIN
-        INSERT INTO client (id, name) VALUES (@id, @name)
-        END
+      MERGE INTO client (`id`, `name`,`category`,`is_active`)
+      KEY (`id`)
+      VALUES (?, ?, ?, ?);
       """;
   private final String GET_STATS = "SELECT * FROM device_client_stats;";
 
@@ -70,6 +76,11 @@ public class ClientRepository implements IRepository<Client> {
     return jdbcTemplate.update(DELETE, id);
   }
 
+  public Client getByName(String name) {
+    List<Client> clients = jdbcTemplate.query(GET_BY_NAME, new ClientRowMapper(), name);
+    return clients.get(0);
+  }
+
   public void batchUpsert(List<Client> clients) {
     jdbcTemplate.batchUpdate(
         UPSERT,
@@ -78,6 +89,8 @@ public class ClientRepository implements IRepository<Client> {
         (ps, client) -> {
           ps.setInt(1, client.getId());
           ps.setString(2, client.getName());
+          ps.setString(3, client.getCategory());
+          ps.setBoolean(4, client.getIsActive());
         });
   }
 }

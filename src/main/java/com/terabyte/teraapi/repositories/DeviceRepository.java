@@ -17,32 +17,37 @@ public class DeviceRepository implements IRepository<Device> {
   private final String GET_ALL = "SELECT * FROM device";
   private final String CREATE = """
         INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       """;
   private final String DELETE = "DELETE FROM device WHERE id = ?";
   private final String UPDATE = """
-      UPDATE device 
-      SET name = ?, nickname = ?, mac = ?, brand = ?, os = ?, processor = ?, user = ?, serial = ?, model = ?, type = ?, client_id = ?, 
-      is_active = ?, last_update = ?, last_sync = ? 
-      WHERE id = ?
-    """;
-  private final String UPSERT = """
-      DECLARE 
-        @id INT = ?, @name VARCHAR(120) = ?, @nickname VARCHAR(120) = ?, @mac VARCHAR(120) = ?, @brand VARCHAR(120) = ?, @os VARCHAR(120) = ?, @processor VARCHAR(120) = ?, @user VARCHAR(120) = ?, 
-        @serial VARCHAR(120) = ?, @model VARCHAR(120) = ?, @type VARCHAR(120) = ?, @client_id INT = ?, @is_active BIT = ?, @last_update VARCHAR(120) = ?, @last_sync VARCHAR(120) = ?
-      IF EXISTS ((SELECT * FROM device WHERE id = @id) = 1)
-        BEGIN
-        UPDATE device 
-          SET name = @name, nickname = @nickname, mac = @mac, brand = @brand, os = @os, processor = @processor, user = @user, serial = @serial, model = @model, type = @type, 
-          client_id = @client_id, is_active = @is_active, last_update = @last_update, last_sync = @last_sync 
-          WHERE id = @id
-        END
-      ELSE
-        BEGIN
-        INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync) 
-        VALUES (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync)
-        END
+        UPDATE device
+        SET name = ?, nickname = ?, mac = ?, brand = ?, os = ?, processor = ?, user = ?, serial = ?, model = ?, type = ?, client_id = ?,
+        is_active = ?, last_update = ?, last_sync = ?
+        WHERE id = ?;
       """;
+  private final String UPSERT = """
+        MERGE INTO device (`id`, `name`, `nickname`, `mac`, `brand`, `os`, `processor`, `user`, `serial`, `model`, `type`, `client_id`, `is_active`, `last_update`, `last_sync`)
+        KEY (`id`)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      """;
+  // private final String UPSERT_SQL = """
+  //   DECLARE 
+  //     @id INT = ?, @name VARCHAR(120) = ?, @nickname VARCHAR(120) = ?, @mac VARCHAR(120) = ?, @brand VARCHAR(120) = ?, @os VARCHAR(120) = ?, @processor VARCHAR(120) = ?, @user VARCHAR(120) = ?, 
+  //     @serial VARCHAR(120) = ?, @model VARCHAR(120) = ?, @type VARCHAR(120) = ?, @client_id INT = ?, @is_active BIT = ?, @last_update VARCHAR(120) = ?, @last_sync VARCHAR(120) = ?
+  //   IF EXISTS ((SELECT * FROM device WHERE id = @id) = 1)
+  //     BEGIN
+  //     UPDATE device 
+  //       SET name = @name, nickname = @nickname, mac = @mac, brand = @brand, os = @os, processor = @processor, user = @user, serial = @serial, model = @model, type = @type, 
+  //       client_id = @client_id, is_active = @is_active, last_update = @last_update, last_sync = @last_sync 
+  //       WHERE id = @id
+  //     END
+  //   ELSE
+  //     BEGIN
+  //     INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync) 
+  //     VALUES (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync)
+  //     END
+  //   """;
 
   public List<Device> getAll() {
     return jdbcTemplate.query(GET_ALL, new DeviceRowMapper());
@@ -110,6 +115,7 @@ public class DeviceRepository implements IRepository<Device> {
           ps.setString(14, device.getLastUpdate());
           ps.setString(15, device.getLastSync());
         });
+    System.out.println("< " + devices.size() + " devices upserted.");
   }
 
   public Integer update(Device device) {
