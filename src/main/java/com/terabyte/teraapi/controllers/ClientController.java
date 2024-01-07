@@ -10,10 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.terabyte.teraapi.models.Client;
-import com.terabyte.teraapi.models.Device;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.services.MilvusService;
-import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -24,7 +22,7 @@ public class ClientController {
   @Autowired
   private final MilvusService milvusService = new MilvusService();
 
-  @GetMapping("/")
+  @GetMapping()
   public List<Client> getClients() {
     return clientRepository.getAll();
   }
@@ -40,14 +38,18 @@ public class ClientController {
   }
 
   @GetMapping("/sync")
-  public ResponseEntity<List<Device>> syncClients() {
+  public ResponseEntity<List<Client>> syncClients() {
+    List<Client> res;
+    long start = System.currentTimeMillis();
     try {
-      MilvusDeviceResp res = milvusService.loadDevices();
-      return ResponseEntity.ok(res.mapToDevices());
+      res = milvusService.loadClients();
     } catch (Exception e) {
-      System.out.println("Error");
-      System.out.println(e);
+      System.out.println("Error: " + e);
       return null;
     }
+    clientRepository.batchUpsert(res);
+    long end = System.currentTimeMillis();
+    System.out.println("Time: " + (end - start) + "ms");
+    return ResponseEntity.ok(res);
   }
 }
