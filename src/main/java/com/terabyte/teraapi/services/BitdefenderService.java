@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
+import com.terabyte.teraapi.utils.BitGroupsResp;
 
 @Service
 public class BitdefenderService {
@@ -23,10 +26,11 @@ public class BitdefenderService {
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";
 
-  public String loadGroups() {
+  public BitGroupsResp loadGroups() throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getCustomGroupsList", rootGroupId);
     ResponseEntity<String> result = getResponse(request);
-    return result.getBody();
+    BitGroupsResp res = mapper.readValue(result.getBody(), BitGroupsResp.class);
+    return res;
   }
 
   public String loadStatusByGroupId(String groupId) {
