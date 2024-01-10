@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
 import com.terabyte.teraapi.services.BitdefenderService;
+import com.terabyte.teraapi.utils.BitGroupsResp;
 
 @RestController
 @RequestMapping("/api/security-status")
@@ -26,7 +29,7 @@ public class SecurityStatusController {
   }
 
   @GetMapping("/sync")
-  public String syncSecurityStatuses() {
+  public BitGroupsResp syncSecurityStatuses() throws JsonMappingException, JsonProcessingException {
     return bitdefenderService.loadGroups();
   }
 
