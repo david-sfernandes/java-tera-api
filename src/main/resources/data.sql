@@ -55,15 +55,13 @@ CREATE TABLE IF NOT EXISTS `ticket` (
     SET NULL
 );
 CREATE TABLE IF NOT EXISTS `security_status` (
-    `id` INT NOT NULL,
+    `id` VARCHAR(30) NOT NULL,
     `name` VARCHAR(100),
     `mac` VARCHAR(30),
-    `policy` VARCHAR(100),
     `group` VARCHAR(100),
-    `last_update` DATETIME,
+    `last_sync` DATETIME,
     `is_managed` BIT,
     `is_managed_with_best` BIT,
-    `is_policy_applied` BIT,
     `device_id` BIGINT,
     FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE
     SET NULL,

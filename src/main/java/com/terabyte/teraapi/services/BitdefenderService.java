@@ -1,5 +1,7 @@
 package com.terabyte.teraapi.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -13,8 +15,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.terabyte.teraapi.models.SecurityStatus;
+import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
-import com.terabyte.teraapi.utils.BitGroupsResp;
+import com.terabyte.teraapi.utils.BitCompaniesGroups;
+import com.terabyte.teraapi.utils.BitEndpointList;
+import com.terabyte.teraapi.utils.BitGroups;
+import com.terabyte.teraapi.utils.BitNetworkGroups;
 
 @Service
 public class BitdefenderService {
@@ -22,21 +29,39 @@ public class BitdefenderService {
   private String bitdefenderKey;
   @Autowired
   private SecurityStatusRepository statusRepository = new SecurityStatusRepository();
-  private final String baseUrl = "https://cloud.gravityzone.bitdefender.com/api/v1.0/jsonrpc/network";
+  @Autowired
+  private DeviceRepository deviceRepository = new DeviceRepository();
+  private final String url = "https://cloud.gravityzone.bitdefender.com/api/v1.0/jsonrpc/network";
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";
 
-  public BitGroupsResp loadGroups() throws JsonMappingException, JsonProcessingException {
+  public List<BitGroups> loadNetworkGroups() throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getCustomGroupsList", rootGroupId);
-    ResponseEntity<String> result = getResponse(request);
-    BitGroupsResp res = mapper.readValue(result.getBody(), BitGroupsResp.class);
-    return res;
+    ResponseEntity<String> response = getResponse(request);
+    BitNetworkGroups res = mapper.readValue(response.getBody(), BitNetworkGroups.class);
+    return res.result();
   }
 
-  public String loadStatusByGroupId(String groupId) {
+  public List<BitGroups> loadCompaniesGroups() throws JsonMappingException, JsonProcessingException {
+    String request = generateRequestString("getNetworkInventoryItems", "55faa46e3a621503728b457a");
+    ResponseEntity<String> response = getResponse(request);
+    BitCompaniesGroups res = mapper.readValue(response.getBody(), BitCompaniesGroups.class);
+    return res.result().items();
+  }
+
+  public List<SecurityStatus> loadStatusByGroupId(String groupId) throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getEndpointsList", groupId);
-    ResponseEntity<String> result = getResponse(request);
-    return result.getBody();
+    ResponseEntity<String> response = getResponse(request);
+    BitEndpointList res = mapper.readValue(response.getBody(), BitEndpointList.class);
+    return res.mapToSecurityStatus(groupId, deviceRepository);
+  }
+
+  public void syncSecurityStatus() throws JsonMappingException, JsonProcessingException {
+    List<BitGroups> companies = loadCompaniesGroups();
+    for (BitGroups company : companies) {
+      List<SecurityStatus> statuses = loadStatusByGroupId(company.id());
+      statusRepository.batchUpsert(statuses);
+    }
   }
 
   private String generateRequestString(String method, String parentId) {
@@ -49,7 +74,7 @@ public class BitdefenderService {
     String loginString = bitdefenderKey + ":";
     String encodedUserPassSequence = new String(java.util.Base64.getEncoder().encode(loginString.getBytes()));
     String authHeader = "Basic " + encodedUserPassSequence;
-    WebClient webClient = WebClient.builder().baseUrl(baseUrl).build();
+    WebClient webClient = WebClient.builder().baseUrl(url).build();
     return webClient.post()
         .uri("")
         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

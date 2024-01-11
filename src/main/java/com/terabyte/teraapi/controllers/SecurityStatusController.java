@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
 import com.terabyte.teraapi.services.BitdefenderService;
-import com.terabyte.teraapi.utils.BitGroupsResp;
+import com.terabyte.teraapi.utils.BitGroups;
 
 @RestController
 @RequestMapping("/api/security-status")
@@ -29,12 +29,7 @@ public class SecurityStatusController {
   }
 
   @GetMapping("/sync")
-  public BitGroupsResp syncSecurityStatuses() throws JsonMappingException, JsonProcessingException {
-    return bitdefenderService.loadGroups();
-  }
-
-  @GetMapping("/syncId")
-  public String syncSecurityStatuses(@RequestParam String id) {
-    return bitdefenderService.loadStatusByGroupId(id);
+  public List<BitGroups> syncSecurityStatuses() throws JsonMappingException, JsonProcessingException {
+    return bitdefenderService.loadNetworkGroups();
   }
 }
