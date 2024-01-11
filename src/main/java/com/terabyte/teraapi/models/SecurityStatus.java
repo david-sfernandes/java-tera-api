@@ -10,14 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SecurityStatus {
-  private Integer id;
+  private String id;
   private String name;
   private String mac;
-  private String policy;
   private String group;
-  private String lastUpdate;
+  private String lastSync;
   private Boolean isManaged;
   private Boolean isManagedWithBest;
-  private Boolean isPolicyApplied;
   private Integer deviceId;
 }

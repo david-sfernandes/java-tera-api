@@ -11,15 +11,13 @@ public class SecurityStatusRowMapper implements RowMapper<SecurityStatus> {
   @Override
   public SecurityStatus mapRow(ResultSet rs, int rowNum) throws SQLException {
     SecurityStatus securityStatus = new SecurityStatus();
-    securityStatus.setId(rs.getInt("id"));
+    securityStatus.setId(rs.getString("id"));
     securityStatus.setName(rs.getString("name"));
     securityStatus.setMac(rs.getString("mac"));
-    securityStatus.setPolicy(rs.getString("policy"));
     securityStatus.setGroup(rs.getString("group"));
-    securityStatus.setLastUpdate(rs.getString("last_update"));
+    securityStatus.setLastSync(rs.getString("last_sync"));
     securityStatus.setIsManaged(rs.getBoolean("is_managed"));
     securityStatus.setIsManagedWithBest(rs.getBoolean("is_managed_with_best"));
-    securityStatus.setIsPolicyApplied(rs.getBoolean("is_policy_applied"));
     securityStatus.setDeviceId(rs.getInt("device_id"));
     return securityStatus;
   }

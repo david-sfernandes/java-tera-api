@@ -15,6 +15,7 @@ public class DeviceRepository implements IRepository<Device> {
   private JdbcTemplate jdbcTemplate;
 
   private final String GET_ALL = "SELECT * FROM device";
+  private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM device WHERE (mac = ? OR name = ?)";
   private final String CREATE = """
         INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -31,23 +32,33 @@ public class DeviceRepository implements IRepository<Device> {
         KEY (`id`)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       """;
+      
   // private final String UPSERT_SQL = """
-  //   DECLARE 
-  //     @id INT = ?, @name VARCHAR(120) = ?, @nickname VARCHAR(120) = ?, @mac VARCHAR(120) = ?, @brand VARCHAR(120) = ?, @os VARCHAR(120) = ?, @processor VARCHAR(120) = ?, @user VARCHAR(120) = ?, 
-  //     @serial VARCHAR(120) = ?, @model VARCHAR(120) = ?, @type VARCHAR(120) = ?, @client_id INT = ?, @is_active BIT = ?, @last_update VARCHAR(120) = ?, @last_sync VARCHAR(120) = ?
-  //   IF EXISTS ((SELECT * FROM device WHERE id = @id) = 1)
-  //     BEGIN
-  //     UPDATE device 
-  //       SET name = @name, nickname = @nickname, mac = @mac, brand = @brand, os = @os, processor = @processor, user = @user, serial = @serial, model = @model, type = @type, 
-  //       client_id = @client_id, is_active = @is_active, last_update = @last_update, last_sync = @last_sync 
-  //       WHERE id = @id
-  //     END
-  //   ELSE
-  //     BEGIN
-  //     INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync) 
-  //     VALUES (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync)
-  //     END
-  //   """;
+  // DECLARE
+  // @id INT = ?, @name VARCHAR(120) = ?, @nickname VARCHAR(120) = ?, @mac
+  // VARCHAR(120) = ?, @brand VARCHAR(120) = ?, @os VARCHAR(120) = ?, @processor
+  // VARCHAR(120) = ?, @user VARCHAR(120) = ?,
+  // @serial VARCHAR(120) = ?, @model VARCHAR(120) = ?, @type VARCHAR(120) = ?,
+  // @client_id INT = ?, @is_active BIT = ?, @last_update VARCHAR(120) = ?,
+  // @last_sync VARCHAR(120) = ?
+  // IF EXISTS ((SELECT * FROM device WHERE id = @id) = 1)
+  // BEGIN
+  // UPDATE device
+  // SET name = @name, nickname = @nickname, mac = @mac, brand = @brand, os = @os,
+  // processor = @processor, user = @user, serial = @serial, model = @model, type
+  // = @type,
+  // client_id = @client_id, is_active = @is_active, last_update = @last_update,
+  // last_sync = @last_sync
+  // WHERE id = @id
+  // END
+  // ELSE
+  // BEGIN
+  // INSERT INTO device (id, name, nickname, mac, brand, os, processor, user,
+  // serial, model, type, client_id, is_active, last_update, last_sync)
+  // VALUES (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial,
+  // @model, @type, @client_id, @is_active, @last_update, @last_sync)
+  // END
+  // """;
 
   public List<Device> getAll() {
     return jdbcTemplate.query(GET_ALL, new DeviceRowMapper());
@@ -140,5 +151,9 @@ public class DeviceRepository implements IRepository<Device> {
 
   public Integer delete(Integer id) {
     return jdbcTemplate.update(DELETE, id);
+  }
+
+  public List<Integer> getIdSecurityStatus(String mac, String name) {
+    return jdbcTemplate.queryForList(GET_ID_SECURYTY_STATUS, Integer.class, mac, name);
   }
 }
