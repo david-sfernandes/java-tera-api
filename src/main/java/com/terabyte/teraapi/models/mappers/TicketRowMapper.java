@@ -4,12 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 
 import com.terabyte.teraapi.models.Ticket;
 
 public class TicketRowMapper implements RowMapper<Ticket> {
   @Override
-  public Ticket mapRow(ResultSet rs, int rowNum) throws SQLException {
+  public Ticket mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
     Ticket ticket = new Ticket();
     ticket.setId(rs.getInt("id"));
     ticket.setCode(rs.getInt("code"));
