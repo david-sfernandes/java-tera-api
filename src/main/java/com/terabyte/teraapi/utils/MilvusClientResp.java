@@ -17,5 +17,4 @@ public record MilvusClientResp(List<MilvusClient> lista) {
     });
     return clients;
   }
-
 }

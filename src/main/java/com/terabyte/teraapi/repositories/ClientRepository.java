@@ -2,6 +2,8 @@ package com.terabyte.teraapi.repositories;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -14,6 +16,8 @@ import com.terabyte.teraapi.models.mappers.ClientRowMapper;
 public class ClientRepository implements IRepository<Client> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  private Logger log = LoggerFactory.getLogger("ClientRepository");
 
   private final String GET_ALL = "SELECT * FROM dbo.client";
   private final String CREATE = "INSERT INTO dbo.client (id, [name], category, is_active) VALUES (?, ?, ?, ?)";
@@ -96,8 +100,7 @@ public class ClientRepository implements IRepository<Client> {
         (ps, client) -> {
           ps.setInt(1, client.getId());
           ps.setString(2, client.getName());
-          ps.setString(3, client.getCategory());
-          ps.setBoolean(4, client.getIsActive());
         });
+    log.info("> " + clients.size() + " clients upserted");
   }
 }

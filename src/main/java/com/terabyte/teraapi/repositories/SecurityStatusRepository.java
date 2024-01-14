@@ -3,6 +3,8 @@ package com.terabyte.teraapi.repositories;
 import java.sql.Types;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,8 @@ import com.terabyte.teraapi.models.mappers.SecurityStatusRowMapper;
 public class SecurityStatusRepository implements IRepository<SecurityStatus> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  private Logger log = LoggerFactory.getLogger("SecurityStatusRepository");
 
   private final String GET_ALL = "SELECT * FROM dbo.security_status";
   private final String CREATE = """
@@ -98,7 +102,7 @@ public class SecurityStatusRepository implements IRepository<SecurityStatus> {
           ps.setBoolean(7, securityStatus.isManagedWithBest());
           ps.setObject(8, securityStatus.getDeviceId(), Types.INTEGER);
         });
-    System.out.println("< " + securityStatuses.size() + " security status upserted.");
+    log.info("< " + securityStatuses.size() + " security status upserted.");
   }
 
   public Integer update(SecurityStatus securityStatus) {

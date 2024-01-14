@@ -3,6 +3,8 @@ package com.terabyte.teraapi.repositories;
 import java.sql.Types;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,8 @@ import com.terabyte.teraapi.models.mappers.DeviceRowMapper;
 public class DeviceRepository implements IRepository<Device> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  private Logger log = LoggerFactory.getLogger("DeviceRepository");
 
   private final String GET_ALL = "SELECT * FROM dbo.device";
   private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM dbo.device WHERE (mac = ? OR name = ?)";
@@ -30,13 +34,6 @@ public class DeviceRepository implements IRepository<Device> {
           client_id = ?, is_active = ?, last_update = ?, last_sync = ?
       WHERE id = ?;
       """;
-  // private final String UPSERT = """
-  // MERGE INTO dbo.device (`id`, `name`, `nickname`, `mac`, `brand`, `os`,
-  // `processor`, `user`, `serial`, `model`, `type`, `client_id`, `is_active`,
-  // `last_update`, `last_sync`)
-  // KEY (`id`)
-  // VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-  // """;
   private final String UPSERT = """
       DECLARE @id INT = ?,
           @name VARCHAR(120) = ?,
@@ -119,7 +116,7 @@ public class DeviceRepository implements IRepository<Device> {
   }
 
   public void batchUpsert(List<Device> devices) {
-    System.out.println("- Upserting devices...");
+    log.info("- Upserting devices...");
     jdbcTemplate.batchUpdate(
         UPSERT,
         devices,
@@ -141,7 +138,7 @@ public class DeviceRepository implements IRepository<Device> {
           ps.setObject(14, device.getLastUpdate(), Types.DATE);
           ps.setDate(15, device.getLastSync());
         });
-    System.out.println("< " + devices.size() + " devices upserted.");
+    log.info("< " + devices.size() + " devices upserted.");
   }
 
   public Integer update(Device device) {
