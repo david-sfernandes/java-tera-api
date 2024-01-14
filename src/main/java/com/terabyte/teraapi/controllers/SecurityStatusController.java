@@ -29,7 +29,8 @@ public class SecurityStatusController {
   }
 
   @GetMapping("/sync")
-  public List<BitGroups> syncSecurityStatuses() throws JsonMappingException, JsonProcessingException {
-    return bitdefenderService.loadNetworkGroups();
+  public String syncSecurityStatuses() throws JsonMappingException, JsonProcessingException {
+    bitdefenderService.syncSecurityStatus();
+    return "Synced";
   }
 }

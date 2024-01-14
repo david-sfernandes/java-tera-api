@@ -1,5 +1,6 @@
 package com.terabyte.teraapi.repositories;
 
+import java.sql.Types;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,51 +15,64 @@ public class DeviceRepository implements IRepository<Device> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  private final String GET_ALL = "SELECT * FROM device";
-  private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM device WHERE (mac = ? OR name = ?)";
+  private final String GET_ALL = "SELECT * FROM dbo.device";
+  private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM dbo.device WHERE (mac = ? OR name = ?)";
   private final String CREATE = """
-        INSERT INTO device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync)
+        INSERT INTO dbo.device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       """;
-  private final String DELETE = "DELETE FROM device WHERE id = ?";
+  private final String DELETE = "DELETE FROM dbo.device WHERE id = ?";
   private final String UPDATE = """
-        UPDATE device
-        SET name = ?, nickname = ?, mac = ?, brand = ?, os = ?, processor = ?, user = ?, serial = ?, model = ?, type = ?, client_id = ?,
-        is_active = ?, last_update = ?, last_sync = ?
-        WHERE id = ?;
+      UPDATE dbo.device
+      SET
+          [name] = ?, nickname = ?, mac = ?, brand = ?, os = ?,
+          processor = ?, [user]= ?, [serial] = ?, model = ?, [type] = ?,
+          client_id = ?, is_active = ?, last_update = ?, last_sync = ?
+      WHERE id = ?;
       """;
-  private final String UPSERT = """
-        MERGE INTO device (`id`, `name`, `nickname`, `mac`, `brand`, `os`, `processor`, `user`, `serial`, `model`, `type`, `client_id`, `is_active`, `last_update`, `last_sync`)
-        KEY (`id`)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      """;
-      
-  // private final String UPSERT_SQL = """
-  // DECLARE
-  // @id INT = ?, @name VARCHAR(120) = ?, @nickname VARCHAR(120) = ?, @mac
-  // VARCHAR(120) = ?, @brand VARCHAR(120) = ?, @os VARCHAR(120) = ?, @processor
-  // VARCHAR(120) = ?, @user VARCHAR(120) = ?,
-  // @serial VARCHAR(120) = ?, @model VARCHAR(120) = ?, @type VARCHAR(120) = ?,
-  // @client_id INT = ?, @is_active BIT = ?, @last_update VARCHAR(120) = ?,
-  // @last_sync VARCHAR(120) = ?
-  // IF EXISTS ((SELECT * FROM device WHERE id = @id) = 1)
-  // BEGIN
-  // UPDATE device
-  // SET name = @name, nickname = @nickname, mac = @mac, brand = @brand, os = @os,
-  // processor = @processor, user = @user, serial = @serial, model = @model, type
-  // = @type,
-  // client_id = @client_id, is_active = @is_active, last_update = @last_update,
-  // last_sync = @last_sync
-  // WHERE id = @id
-  // END
-  // ELSE
-  // BEGIN
-  // INSERT INTO device (id, name, nickname, mac, brand, os, processor, user,
-  // serial, model, type, client_id, is_active, last_update, last_sync)
-  // VALUES (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial,
-  // @model, @type, @client_id, @is_active, @last_update, @last_sync)
-  // END
+  // private final String UPSERT = """
+  // MERGE INTO dbo.device (`id`, `name`, `nickname`, `mac`, `brand`, `os`,
+  // `processor`, `user`, `serial`, `model`, `type`, `client_id`, `is_active`,
+  // `last_update`, `last_sync`)
+  // KEY (`id`)
+  // VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   // """;
+  private final String UPSERT = """
+      DECLARE @id INT = ?,
+          @name VARCHAR(120) = ?,
+          @nickname VARCHAR(120) = ?,
+          @mac VARCHAR(120) = ?,
+          @brand VARCHAR(30) = ?,
+          @os VARCHAR(60) = ?,
+          @processor VARCHAR(100) = ?,
+          @user VARCHAR(30) = ?,
+          @serial VARCHAR(100) = ?,
+          @model VARCHAR(100) = ?,
+          @type VARCHAR(30) = ?,
+          @client_id INT = ?,
+          @is_active BIT = ?,
+          @last_update VARCHAR(50) = ?,
+          @last_sync VARCHAR(50) = ?
+      IF EXISTS (SELECT 1
+      FROM dbo.device
+      WHERE id = @id)
+      BEGIN
+      -- Atualiza o registro se o ID existir
+      UPDATE dbo.device
+      SET [name] = @name,
+          nickname = @nickname,
+          mac = @mac
+      WHERE id = @id
+      END
+      ELSE
+      BEGIN
+      -- Insere um novo registro se o ID não existir
+      INSERT INTO dbo.device
+        (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync)
+      VALUES
+        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync)
+      END;
+      """;
 
   public List<Device> getAll() {
     return jdbcTemplate.query(GET_ALL, new DeviceRowMapper());
@@ -105,6 +119,7 @@ public class DeviceRepository implements IRepository<Device> {
   }
 
   public void batchUpsert(List<Device> devices) {
+    System.out.println("- Upserting devices...");
     jdbcTemplate.batchUpdate(
         UPSERT,
         devices,
@@ -121,10 +136,10 @@ public class DeviceRepository implements IRepository<Device> {
           ps.setString(9, device.getSerial());
           ps.setString(10, device.getModel());
           ps.setString(11, device.getType());
-          ps.setInt(12, device.getClientId());
+          ps.setObject(12, device.getClientId(), Types.INTEGER);
           ps.setBoolean(13, device.getIsActive());
-          ps.setString(14, device.getLastUpdate());
-          ps.setString(15, device.getLastSync());
+          ps.setObject(14, device.getLastUpdate(), Types.DATE);
+          ps.setDate(15, device.getLastSync());
         });
     System.out.println("< " + devices.size() + " devices upserted.");
   }

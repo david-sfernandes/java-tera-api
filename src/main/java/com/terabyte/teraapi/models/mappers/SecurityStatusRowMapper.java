@@ -15,9 +15,9 @@ public class SecurityStatusRowMapper implements RowMapper<SecurityStatus> {
     securityStatus.setName(rs.getString("name"));
     securityStatus.setMac(rs.getString("mac"));
     securityStatus.setGroup(rs.getString("group"));
-    securityStatus.setLastSync(rs.getString("last_sync"));
-    securityStatus.setIsManaged(rs.getBoolean("is_managed"));
-    securityStatus.setIsManagedWithBest(rs.getBoolean("is_managed_with_best"));
+    securityStatus.setLastSync(rs.getDate("last_sync"));
+    securityStatus.setManaged(rs.getBoolean("is_managed"));
+    securityStatus.setManagedWithBest(rs.getBoolean("is_managed_with_best"));
     securityStatus.setDeviceId(rs.getInt("device_id"));
     return securityStatus;
   }

@@ -15,27 +15,32 @@ public class ClientRepository implements IRepository<Client> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  private final String GET_ALL = "SELECT * FROM client";
-  private final String CREATE = "INSERT INTO client (id, name, category, is_active) VALUES (?, ?, ?, ?)";
-  private final String DELETE = "DELETE FROM client WHERE id = ?";
-  private final String UPDATE = "UPDATE client SET name = ?, category = ?, is_active = ? WHERE id = ?";
-  private final String GET_BY_NAME = "SELECT * FROM client WHERE name = ?";
-  // private final String UPSERT_SQL = """
-  //     DECLARE @id INT = ?, @name VARCHAR(120) = ?
-  //     IF EXISTS ((SELECT * FROM client WHERE id = @id) = 1)
-  //       BEGIN
-  //       UPDATE client SET name = @name WHERE id = @id
-  //       END
-  //     ELSE
-  //       BEGIN
-  //       INSERT INTO client (id, name) VALUES (@id, @name)
-  //       END
-  //     """;
+  private final String GET_ALL = "SELECT * FROM dbo.client";
+  private final String CREATE = "INSERT INTO dbo.client (id, [name], category, is_active) VALUES (?, ?, ?, ?)";
+  private final String DELETE = "DELETE FROM dbo.client WHERE id = ?";
+  private final String UPDATE = "UPDATE dbo.client SET [name] = ?, category = ?, is_active = ? WHERE id = ?";
+  private final String GET_BY_NAME = "SELECT * FROM dbo.client WHERE [name] = ?";
   private final String UPSERT = """
-      MERGE INTO client (`id`, `name`,`category`,`is_active`)
-      KEY (`id`)
-      VALUES (?, ?, ?, ?);
-      """;
+      DECLARE @id INT = ?, @name VARCHAR(120) = ?
+      IF EXISTS (SELECT 1
+      FROM dbo.client
+      WHERE id = @id)
+      BEGIN
+          UPDATE dbo.client SET [name] = @name WHERE id = @id
+      END
+      ELSE
+      BEGIN
+          INSERT INTO dbo.client
+              (id, [name])
+          VALUES
+              (@id, @name)
+      END
+        """;
+  // private final String UPSERT = """
+  // MERGE INTO client (`id`, `name`,`category`,`is_active`)
+  // KEY (`id`)
+  // VALUES (?, ?, ?, ?);
+  // """;
   private final String GET_STATS = "SELECT * FROM device_client_stats;";
 
   public List<Client> getAll() {
@@ -78,6 +83,8 @@ public class ClientRepository implements IRepository<Client> {
 
   public Client getByName(String name) {
     List<Client> clients = jdbcTemplate.query(GET_BY_NAME, new ClientRowMapper(), name);
+    if (clients.size() == 0)
+      return null;
     return clients.get(0);
   }
 

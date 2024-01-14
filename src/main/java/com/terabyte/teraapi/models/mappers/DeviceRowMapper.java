@@ -25,7 +25,7 @@ public class DeviceRowMapper implements RowMapper<Device> {
     device.setClientId(rs.getInt("client_id"));
     device.setIsActive(rs.getBoolean("is_active"));
     device.setLastUpdate(rs.getString("last_update"));
-    device.setLastSync(rs.getString("last_sync"));
+    device.setLastSync(rs.getDate("last_sync"));
     return device;
   }
 }

@@ -1,5 +1,7 @@
 package com.terabyte.teraapi.models;
 
+import java.sql.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +16,8 @@ public class SecurityStatus {
   private String name;
   private String mac;
   private String group;
-  private String lastSync;
-  private Boolean isManaged;
-  private Boolean isManagedWithBest;
+  private Date lastSync;
+  private boolean isManaged;
+  private boolean isManagedWithBest;
   private Integer deviceId;
 }
