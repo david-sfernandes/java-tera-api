@@ -14,35 +14,53 @@ public class TicketRepository implements IRepository<Ticket> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  private final String GET_ALL = "SELECT * FROM ticket";
+  private final String GET_ALL = "SELECT * FROM dbo.ticket";
   private final String CREATE = """
-        INSERT INTO 
-        ticket (id, code, first_category, second_category, technician, desk, device_id, department, type, priority, client_name, contact, total_hours, origin, status, resp_sla_status, solution_sla_status, rating, creation_date, resp_date, solution_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      """;
-  private final String DELETE = "DELETE FROM ticket WHERE id = ?";
+      INSERT INTO
+      dbo.ticket
+          (id, code, first_category, second_category, technician, desk, device_id, department, [type], priority, client_name, contact, total_hours, origin, [status], resp_sla_status, solution_sla_status, rating, creation_date, resp_date, solution_date)
+      VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """;
+  private final String DELETE = "DELETE FROM dbo.ticket WHERE id = ?";
   private final String UPDATE = """
-        UPDATE ticket SET code = ?, first_category = ?, second_category = ?, technician = ?, desk = ?, device_id = ?, department = ?, type = ?, priority = ?, client_name = ?, contact = ?, total_hours = ?, origin = ?, status = ?, resp_sla_status = ?,
-        solution_sla_status = ?, rating = ?, creation_date = ?, resp_date = ?, solution_date = ?
-        WHERE id = ?
+      UPDATE dbo.ticket
+      SET code = ?, first_category = ?, second_category = ?, technician = ?,
+      desk = ?, device_id = ?, department = ?, [type] = ?, priority = ?,
+      client_name = ?, contact = ?, total_hours = ?, origin = ?, [status] = ?,
+      resp_sla_status = ?, solution_sla_status = ?, rating = ?, creation_date = ?,
+      resp_date = ?, solution_date = ?
+      WHERE id = ?;
       """;
   private final String UPSERT = """
-      DECLARE 
-        @id INT = ?, @code INT = ?, @first_category VARCHAR(100) = ?, @second_category VARCHAR(100) = ?, @technician VARCHAR(100) = ?, @desk VARCHAR(30) = ?, @device_id INT = ?, @department VARCHAR(30) = ?, @type VARCHAR(30) = ?, @priority VARCHAR(15) = ?, 
-        @client_id INT = ?, @contact VARCHAR(150) = ?, @total_hours VARCHAR(8) = ?, @origin VARCHAR(50) = ?, @status VARCHAR(20) = ?, @resp_sla_status VARCHAR(30) = ?, @solution_sla_status VARCHAR(30) = ?, @rating INT = ?, @creation_date DATETIME = ?, 
-        @resp_date DATETIME = ?, @solution_date DATETIME = ?
-      IF EXISTS (COUNT(SELECT * FROM ticket WHERE id = @id) > 0)
-        BEGIN
-        UPDATE ticket 
-          SET code = @code, first_category = @first_category, second_category = @second_category, technician = @technician, desk = @desk, device_id = @device_id, department = @department, type = @type, priority = @priority, client_id = @client_id, contact = @contact, 
-          total_hours = @total_hours, origin = @origin, status = @status, resp_sla_status = @resp_sla_status, solution_sla_status = @solution_sla_status, rating = @rating, creation_date = @creation_date, resp_date = @resp_date, solution_date = @solution_date 
-        WHERE id = @id
-        END
+      DECLARE
+          @id INT = ?, @code INT = ?, @first_category VARCHAR(100) = ?,
+          @second_category VARCHAR(100) = ?, @technician VARCHAR(100) = ?,
+          @desk VARCHAR(30) = ?, @device_id INT = ?, @department VARCHAR(30) = ?,
+          @type VARCHAR(30) = ?, @priority VARCHAR(15) = ?, @client_id INT = ?,
+          @contact VARCHAR(150) = ?, @total_hours VARCHAR(8) = ?, @origin VARCHAR(50) = ?,
+          @status VARCHAR(20) = ?, @resp_sla_status VARCHAR(30) = ?, @solution_sla_status VARCHAR(30) = ?,
+          @rating INT = ?, @creation_date DATETIME = ?, @resp_date DATETIME = ?, @solution_date DATETIME = ?
+      IF EXISTS (SELECT 1
+      FROM dbo.ticket
+      WHERE id = @id)
+      BEGIN
+          UPDATE dbo.ticket
+          SET code = @code, first_category = @first_category, second_category = @second_category,
+          technician = @technician, desk = @desk, device_id = @device_id, department = @department,
+          [type] = @type, priority = @priority, client_id = @client_id, contact = @contact,
+          total_hours = @total_hours, origin = @origin, [status] = @status, resp_sla_status = @resp_sla_status,
+          solution_sla_status = @solution_sla_status, rating = @rating, creation_date = @creation_date,
+          resp_date = @resp_date, solution_date = @solution_date
+      WHERE id = @id
+      END
       ELSE
-        BEGIN
-        INSERT INTO ticket (id, code, first_category, second_category, technician, desk, device_id, department, type, priority, client_name, contact, total_hours, origin, status, resp_sla_status, solution_sla_status, rating, creation_date, resp_date, solution_date)
-        VALUES (@id, @code, @first_category, @second_category, @technician, @desk, @device_id, @department, @type, @priority, @client_id, @contact, @total_hours, @origin, @status, @resp_sla_status, @solution_sla_status, @rating, @creation_date, @resp_date, @solution_date)
-        END
+      BEGIN
+          INSERT INTO dbo.ticket
+              (id, code, first_category, second_category, technician, desk, device_id, department, [type], priority, client_name, contact, total_hours, origin, [status], resp_sla_status, solution_sla_status, rating, creation_date, resp_date, solution_date)
+          VALUES
+              (@id, @code, @first_category, @second_category, @technician, @desk, @device_id, @department, @type, @priority, @client_id, @contact, @total_hours, @origin, @status, @resp_sla_status, @solution_sla_status, @rating, @creation_date, @resp_date, @solution_date)
+      END;
       """;
 
   public List<Ticket> getAll() {

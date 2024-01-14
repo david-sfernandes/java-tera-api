@@ -1,5 +1,7 @@
 package com.terabyte.teraapi.models;
 
+import java.sql.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,5 +26,5 @@ public class Device {
   private Integer clientId;
   private Boolean isActive;
   private String lastUpdate;
-  private String lastSync;
+  private Date lastSync;
 }

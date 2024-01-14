@@ -57,11 +57,10 @@ public class BitdefenderService {
   }
 
   public void syncSecurityStatus() throws JsonMappingException, JsonProcessingException {
-    List<BitGroups> companies = loadCompaniesGroups();
-    for (BitGroups company : companies) {
-      List<SecurityStatus> statuses = loadStatusByGroupId(company.id());
-      statusRepository.batchUpsert(statuses);
-    }
+    List<BitGroups> groups = loadNetworkGroups();
+    upsertGroupsStatus(groups);
+    groups = loadCompaniesGroups();
+    upsertGroupsStatus(groups);
   }
 
   private String generateRequestString(String method, String parentId) {
@@ -83,5 +82,13 @@ public class BitdefenderService {
         .retrieve()
         .toEntity(String.class)
         .block();
+  }
+
+  private void upsertGroupsStatus(List<BitGroups> groups) throws JsonMappingException, JsonProcessingException {
+    for (BitGroups group : groups) {
+      List<SecurityStatus> statuses = loadStatusByGroupId(group.id());
+      System.out.println("> Load " + group.name() + " - " + statuses.size() + " statuses");
+      statusRepository.batchUpsert(statuses);
+    }
   }
 }
