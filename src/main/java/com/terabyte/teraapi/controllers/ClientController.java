@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.terabyte.teraapi.models.Client;
+import com.terabyte.teraapi.models.DeviceClientStats;
 import com.terabyte.teraapi.repositories.ClientRepository;
 
 @RestController
@@ -33,7 +34,7 @@ public class ClientController {
   }
 
   @GetMapping("/stats")
-  public void getClientStats() {
-    clientRepository.getStats();
+  public List<DeviceClientStats> getClientStats() {
+    return clientRepository.getStats();
   }
 }

@@ -10,7 +10,9 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.Client;
+import com.terabyte.teraapi.models.DeviceClientStats;
 import com.terabyte.teraapi.models.mappers.ClientRowMapper;
+import com.terabyte.teraapi.models.mappers.DeviceClientStatsMapper;
 
 @Repository
 public class ClientRepository implements IRepository<Client> {
@@ -39,13 +41,8 @@ public class ClientRepository implements IRepository<Client> {
           VALUES
               (@id, @name)
       END
-        """;
-  // private final String UPSERT = """
-  // MERGE INTO client (`id`, `name`,`category`,`is_active`)
-  // KEY (`id`)
-  // VALUES (?, ?, ?, ?);
-  // """;
-  private final String GET_STATS = "SELECT * FROM device_client_stats;";
+      """;
+  private final String GET_STATS = "SELECT * FROM device_client_stats ORDER BY name;";
 
   public List<Client> getAll() {
     return jdbcTemplate.query(GET_ALL, new ClientRowMapper());
@@ -77,8 +74,8 @@ public class ClientRepository implements IRepository<Client> {
         client.getId());
   }
 
-  public SqlRowSet getStats() {
-    return jdbcTemplate.queryForRowSet(GET_STATS);
+  public List<DeviceClientStats> getStats() {
+    return jdbcTemplate.query(GET_STATS, new DeviceClientStatsMapper());
   }
 
   public Integer delete(Integer id) {

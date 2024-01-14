@@ -101,8 +101,8 @@ SELECT c.name,
     c.category,
     c.is_active
 FROM dbo.device d
-    LEFT JOIN dbo.client c ON c.id = d.client_id
-    LEFT JOIN dbo.security_status ss ON ss.device_id = d.id
+    JOIN dbo.client c ON c.id = d.client_id
+    JOIN dbo.security_status ss ON ss.device_id = d.id
 WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
 GROUP BY c.name,
     c.category,
