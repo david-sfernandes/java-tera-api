@@ -78,6 +78,17 @@ public class MilvusService {
   }
 
   public MilvusTicketResp loadTickets() throws IOException {
+    MilvusTicketResp tickets = loadTicketsByPage("1");
+    if (tickets.meta().paginate().last_page() > 1) {
+      for (Integer i = 2; i <= tickets.meta().paginate().last_page(); i++) {
+        MilvusTicketResp pageData = loadTicketsByPage(i.toString());
+        tickets.lista().addAll(pageData.lista());
+      }
+    }
+    return tickets;
+  }
+
+  public MilvusTicketResp loadTicketsByPage(String page) throws IOException {
     headers.set("Authorization", milvusKey);
     String payload = """
           {
@@ -87,7 +98,7 @@ public class MilvusService {
           }
         }""";
     entity = new HttpEntity<String>(payload, headers);
-    String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=10&pagina=1";
+    String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=10&pagina=" + page;
     ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
     String body = res.getBody();
     MilvusTicketResp data = mapper.readValue(body, MilvusTicketResp.class);
