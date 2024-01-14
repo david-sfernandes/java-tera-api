@@ -2,6 +2,8 @@ package com.terabyte.teraapi.services;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +33,9 @@ public class BitdefenderService {
   private SecurityStatusRepository statusRepository = new SecurityStatusRepository();
   @Autowired
   private DeviceRepository deviceRepository = new DeviceRepository();
+
+  private Logger log = LoggerFactory.getLogger("BitdefenderService");
+
   private final String url = "https://cloud.gravityzone.bitdefender.com/api/v1.0/jsonrpc/network";
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";
@@ -87,7 +92,7 @@ public class BitdefenderService {
   private void upsertGroupsStatus(List<BitGroups> groups) throws JsonMappingException, JsonProcessingException {
     for (BitGroups group : groups) {
       List<SecurityStatus> statuses = loadStatusByGroupId(group.id());
-      System.out.println("> Load " + group.name() + " - " + statuses.size() + " statuses");
+      log.info("> Load " + group.name() + " - " + statuses.size() + " statuses");
       statusRepository.batchUpsert(statuses);
     }
   }

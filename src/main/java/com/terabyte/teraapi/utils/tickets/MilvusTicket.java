@@ -1,0 +1,55 @@
+package com.terabyte.teraapi.utils.tickets;
+
+public record MilvusTicket(
+    Integer id,
+    String categoria_primaria,
+    String categoria_secundaria,
+    Integer total_avaliacao,
+    String tecnico,
+    String mesa_trabalho,
+    String data_solucao,
+    MilvusTicketDevice dispositivo_vinculado,
+    String data_resposta,
+    String setor,
+    String prioridade,
+    Integer codigo,
+    String cliente,
+    String assunto,
+    String contato,
+    String data_criacao,
+    String total_horas,
+    String origem,
+    String status,
+    String urgencia,
+    MilvusSla sla,
+    String status_sla_resposta,
+    String status_sla_solucao) {
+  public MilvusCleanTicket format() {
+    return new MilvusCleanTicket(
+        id(),
+        categoria_primaria(),
+        categoria_secundaria(),
+        total_avaliacao(),
+        tecnico(),
+        mesa_trabalho(),
+        data_solucao(),
+        dispositivo_vinculado() == null ? null : dispositivo_vinculado().hostname(),
+        data_resposta(),
+        setor(),
+        prioridade(),
+        codigo(),
+        cliente(),
+        assunto(),
+        contato(),
+        data_criacao(),
+        total_horas(),
+        origem(),
+        status(),
+        urgencia(),
+        status_sla_resposta(),
+        sla().resposta().tempo_gasto(),
+        status_sla_solucao(),
+        sla().solucao().tempo_gasto());
+  }
+
+}
