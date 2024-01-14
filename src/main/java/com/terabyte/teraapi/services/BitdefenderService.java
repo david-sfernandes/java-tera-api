@@ -1,5 +1,6 @@
 package com.terabyte.teraapi.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -42,6 +44,10 @@ public class BitdefenderService {
 
   public List<BitGroups> loadNetworkGroups() throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getCustomGroupsList", rootGroupId);
+    if (request == null) {
+      log.error("Request for loadNetworkGroups is null");
+      return new ArrayList<>();
+    }
     ResponseEntity<String> response = getResponse(request);
     BitNetworkGroups res = mapper.readValue(response.getBody(), BitNetworkGroups.class);
     return res.result();
@@ -49,13 +55,21 @@ public class BitdefenderService {
 
   public List<BitGroups> loadCompaniesGroups() throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getNetworkInventoryItems", "55faa46e3a621503728b457a");
+    if (request == null) {
+      log.error("Request for loadCompaniesGroups is null");
+      return null;
+    }
     ResponseEntity<String> response = getResponse(request);
     BitCompaniesGroups res = mapper.readValue(response.getBody(), BitCompaniesGroups.class);
     return res.result().items();
   }
 
-  public List<SecurityStatus> loadStatusByGroupId(String groupId) throws JsonMappingException, JsonProcessingException {
+  public List<SecurityStatus> loadStatusByGroupId(@NonNull String groupId) throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getEndpointsList", groupId);
+    if (request == null) {
+      log.error("Request for loadStatusByGroupId is null");
+      return null;
+    }
     ResponseEntity<String> response = getResponse(request);
     BitEndpointList res = mapper.readValue(response.getBody(), BitEndpointList.class);
     return res.mapToSecurityStatus(groupId, deviceRepository);
@@ -74,7 +88,7 @@ public class BitdefenderService {
     return request;
   }
 
-  private ResponseEntity<String> getResponse(String request) {
+  private ResponseEntity<String> getResponse(@NonNull String request) {
     String loginString = bitdefenderKey + ":";
     String encodedUserPassSequence = new String(java.util.Base64.getEncoder().encode(loginString.getBytes()));
     String authHeader = "Basic " + encodedUserPassSequence;
@@ -89,8 +103,12 @@ public class BitdefenderService {
         .block();
   }
 
-  private void upsertGroupsStatus(List<BitGroups> groups) throws JsonMappingException, JsonProcessingException {
+  private void upsertGroupsStatus(@NonNull List<BitGroups> groups) throws JsonMappingException, JsonProcessingException {
     for (BitGroups group : groups) {
+      if (group.id() == null || group.name().isEmpty()) {
+        log.error("Group id or name is empty");
+        continue;
+      }
       List<SecurityStatus> statuses = loadStatusByGroupId(group.id());
       log.info("> Load " + group.name() + " - " + statuses.size() + " statuses");
       statusRepository.batchUpsert(statuses);

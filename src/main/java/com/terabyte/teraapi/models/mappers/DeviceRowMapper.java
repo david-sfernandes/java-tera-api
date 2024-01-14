@@ -4,12 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 
 import com.terabyte.teraapi.models.Device;
 
 public class DeviceRowMapper implements RowMapper<Device> {
   @Override
-  public Device mapRow(ResultSet rs, int rowNum) throws SQLException {
+  public Device mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
     Device device = new Device();
     device.setId(rs.getInt("id"));
     device.setName(rs.getString("name"));

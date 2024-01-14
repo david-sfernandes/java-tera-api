@@ -9,6 +9,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.lang.NonNull;
 
 @Configuration
 public class DbConfig {
@@ -20,7 +21,7 @@ public class DbConfig {
   String password;
 
   @Bean
-  public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+  public JdbcTemplate jdbcTemplate(@NonNull DataSource dataSource) {
     return new JdbcTemplate(dataSource);
   }
 
