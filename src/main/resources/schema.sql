@@ -27,6 +27,7 @@ IF NOT EXISTS (
     [serial] VARCHAR(100),
     [model] VARCHAR(100),
     [type] VARCHAR(30),
+    [client] VARCHAR(120),
     [client_id] INT DEFAULT NULL,
     [is_active] BIT,
     [last_update] DATETIME,
@@ -87,9 +88,30 @@ IF NOT EXISTS (
         PRIMARY KEY (id)
 );
 
+-- CREATE
+-- OR ALTER VIEW device_client_stats AS
+-- SELECT c.name,
+--     COUNT(d.id) AS "qtd",
+--     SUM(
+--         CASE
+--             WHEN d.last_update > DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
+--             ELSE 0
+--         END
+--     ) AS "qtd_old",
+--     COUNT(ss.id) AS "qtd_security",
+--     c.category,
+--     c.is_active
+-- FROM dbo.device d
+--     JOIN dbo.client c ON c.id = d.client_id
+--     JOIN dbo.security_status ss ON ss.device_id = d.id
+-- WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
+-- GROUP BY c.name,
+--     c.category,
+--     c.is_active;
+
 CREATE
 OR ALTER VIEW device_client_stats AS
-SELECT c.name,
+SELECT d.client,
     COUNT(d.id) AS "qtd",
     SUM(
         CASE
@@ -101,9 +123,9 @@ SELECT c.name,
     c.category,
     c.is_active
 FROM dbo.device d
-    JOIN dbo.client c ON c.id = d.client_id
+    JOIN dbo.client c ON c.name = d.client
     JOIN dbo.security_status ss ON ss.device_id = d.id
 WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
-GROUP BY c.name,
+GROUP BY c.client,
     c.category,
     c.is_active;
