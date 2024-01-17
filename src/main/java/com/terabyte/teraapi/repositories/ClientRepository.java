@@ -42,7 +42,7 @@ public class ClientRepository implements IRepository<Client> {
               (@id, @name)
       END
       """;
-  private final String GET_STATS = "SELECT * FROM device_client_stats ORDER BY name;";
+  private final String GET_STATS = "SELECT * FROM device_client_stats WHERE [name] IS NOT NULL ORDER BY [name];";
 
   public List<Client> getAll() {
     return jdbcTemplate.query(GET_ALL, new ClientRowMapper());

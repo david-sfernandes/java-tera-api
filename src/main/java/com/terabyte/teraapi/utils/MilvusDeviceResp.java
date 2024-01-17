@@ -30,6 +30,7 @@ public record MilvusDeviceResp(List<MilvusDevice> lista, MilvusMeta meta) {
           .serial(item.numero_serial())
           .model(item.modelo_notebook())
           .type(item.tipo_dispositivo_text())
+          .client(item.nome_fantasia())
           .clientId(client == null ? null : client.getId())
           .isActive(item.is_ativo())
           .lastUpdate(item.data_ultima_atualizacao())
