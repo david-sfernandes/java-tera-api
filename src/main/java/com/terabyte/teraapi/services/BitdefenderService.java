@@ -64,7 +64,7 @@ public class BitdefenderService {
     return res.result().items();
   }
 
-  public List<SecurityStatus> loadStatusByGroupId(@NonNull String groupId) throws JsonMappingException, JsonProcessingException {
+  public List<SecurityStatus> loadStatusByGroupId(@NonNull String groupId, @NonNull String groupName) throws JsonMappingException, JsonProcessingException {
     String request = generateRequestString("getEndpointsList", groupId);
     if (request == null) {
       log.error("Request for loadStatusByGroupId is null");
@@ -72,7 +72,7 @@ public class BitdefenderService {
     }
     ResponseEntity<String> response = getResponse(request);
     BitEndpointList res = mapper.readValue(response.getBody(), BitEndpointList.class);
-    return res.mapToSecurityStatus(groupId, deviceRepository);
+    return res.mapToSecurityStatus(groupName, deviceRepository);
   }
 
   public void syncSecurityStatus() throws JsonMappingException, JsonProcessingException {
@@ -109,7 +109,7 @@ public class BitdefenderService {
         log.error("Group id or name is empty");
         continue;
       }
-      List<SecurityStatus> statuses = loadStatusByGroupId(group.id());
+      List<SecurityStatus> statuses = loadStatusByGroupId(group.id(), group.name());
       log.info("> Load " + group.name() + " - " + statuses.size() + " statuses");
       statusRepository.batchUpsert(statuses);
     }
