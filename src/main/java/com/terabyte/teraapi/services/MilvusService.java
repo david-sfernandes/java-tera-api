@@ -19,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.models.Client;
+import com.terabyte.teraapi.models.Device;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.utils.MilvusClientResp;
@@ -135,5 +136,10 @@ public class MilvusService {
     } catch (Exception e) {
       log.error("# Error: " + e.getMessage());
     }
+  }
+
+  public List<Device> test() throws IOException {
+    MilvusDeviceResp devices = loadDevicesByPage(3);
+    return devices.mapToDevicesTemp(clientRepository);
   }
 }

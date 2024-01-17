@@ -37,4 +37,31 @@ public record MilvusDeviceResp(List<MilvusDevice> lista, MilvusMeta meta) {
           .build();
     }).collect(Collectors.toList());
   }
+
+  public List<Device> mapToDevicesTemp(ClientRepository clientRepository) {
+    return lista.stream().map((item) -> {
+      Client client = clientRepository.getByName(item.nome_fantasia());
+      if (client == null) {
+        System.out.println("Client not found: " + item.nome_fantasia());
+      }
+      String mac = item.macaddres() == null ? null : item.macaddres().replace(":", "").toLowerCase();
+      return Device.builder()
+          .id(item.id())
+          .name(item.hostname())
+          .nickname(item.apelido() == null ? null : item.apelido())
+          .mac(mac)
+          .brand(item.placa_mae())
+          .os(item.sistema_operacional())
+          .processor(item.processador())
+          .user(item.usuario_logado())
+          .serial(item.numero_serial())
+          .model(item.modelo_notebook())
+          .type(item.tipo_dispositivo_text())
+          .client(item.nome_fantasia())
+          .clientId(client == null ? null : client.getId())
+          .isActive(item.is_ativo())
+          .lastUpdate(item.data_ultima_atualizacao())
+          .build();
+    }).collect(Collectors.toList());
+  }
 }
