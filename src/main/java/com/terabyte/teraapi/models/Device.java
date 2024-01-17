@@ -23,6 +23,7 @@ public class Device {
   private String serial;
   private String model;
   private String type;
+  private String client;
   private Integer clientId;
   private Boolean isActive;
   private String lastUpdate;
