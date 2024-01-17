@@ -88,30 +88,9 @@ IF NOT EXISTS (
         PRIMARY KEY (id)
 );
 
--- CREATE
--- OR ALTER VIEW device_client_stats AS
--- SELECT c.name,
---     COUNT(d.id) AS "qtd",
---     SUM(
---         CASE
---             WHEN d.last_update > DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
---             ELSE 0
---         END
---     ) AS "qtd_old",
---     COUNT(ss.id) AS "qtd_security",
---     c.category,
---     c.is_active
--- FROM dbo.device d
---     JOIN dbo.client c ON c.id = d.client_id
---     JOIN dbo.security_status ss ON ss.device_id = d.id
--- WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
--- GROUP BY c.name,
---     c.category,
---     c.is_active;
-
 CREATE
 OR ALTER VIEW device_client_stats AS
-SELECT d.client,
+SELECT c.name,
     COUNT(d.id) AS "qtd",
     SUM(
         CASE
@@ -123,9 +102,30 @@ SELECT d.client,
     c.category,
     c.is_active
 FROM dbo.device d
-    JOIN dbo.client c ON c.name = d.client
-    JOIN dbo.security_status ss ON ss.device_id = d.id
+    LEFT JOIN dbo.client c ON c.id = d.client_id
+    LEFT JOIN dbo.security_status ss ON ss.device_id = d.id
 WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
-GROUP BY c.client,
+GROUP BY c.name,
     c.category,
     c.is_active;
+
+-- CREATE
+-- OR ALTER VIEW device_client_stats AS
+-- SELECT d.client AS "name",
+--     COUNT(d.id) AS "qtd",
+--     SUM(
+--         CASE
+--             WHEN d.last_update > DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
+--             ELSE 0
+--         END
+--     ) AS "qtd_old",
+--     COUNT(ss.id) AS "qtd_security",
+--     c.category,
+--     c.is_active
+-- FROM dbo.device d
+--     JOIN dbo.client c ON c.name = d.client
+--     JOIN dbo.security_status ss ON ss.device_id = d.id
+-- WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
+-- GROUP BY d.client,
+--     c.category,
+--     c.is_active;

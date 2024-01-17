@@ -22,8 +22,8 @@ public class DeviceRepository implements IRepository<Device> {
   private final String GET_ALL = "SELECT * FROM dbo.device";
   private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM dbo.device WHERE (mac = ? OR name = ?)";
   private final String CREATE = """
-        INSERT INTO dbo.device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO dbo.device (id, name, nickname, mac, brand, os, processor, user, serial, model, type, client_id, is_active, last_update, last_sync, client)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       """;
   private final String DELETE = "DELETE FROM dbo.device WHERE id = ?";
   private final String UPDATE = """
@@ -31,7 +31,7 @@ public class DeviceRepository implements IRepository<Device> {
       SET
           [name] = ?, nickname = ?, mac = ?, brand = ?, os = ?,
           processor = ?, [user]= ?, [serial] = ?, model = ?, [type] = ?,
-          client_id = ?, is_active = ?, last_update = ?, last_sync = ?
+          client_id = ?, is_active = ?, last_update = ?, last_sync = ?, client = ?
       WHERE id = ?;
       """;
   private final String UPSERT = """
@@ -49,7 +49,8 @@ public class DeviceRepository implements IRepository<Device> {
           @client_id INT = ?,
           @is_active BIT = ?,
           @last_update VARCHAR(50) = ?,
-          @last_sync VARCHAR(50) = ?
+          @last_sync VARCHAR(50) = ?,
+          @client VARCHAR(120) = ?
       IF EXISTS (SELECT 1
       FROM dbo.device
       WHERE id = @id)
@@ -57,17 +58,29 @@ public class DeviceRepository implements IRepository<Device> {
       -- Atualiza o registro se o ID existir
       UPDATE dbo.device
       SET [name] = @name,
-          nickname = @nickname,
-          mac = @mac
+          [nickname] = @nickname,
+          [mac] = @mac,
+          [brand] = @brand,
+          [os] = @os,
+          [processor] = @processor,
+          [user] = @user,
+          [serial] = @serial,
+          [model] = @model,
+          [type] = @type,
+          [client_id] = @client_id,
+          [is_active] = @is_active,
+          [last_update] = @last_update,
+          [last_sync] = @last_sync,
+          [client] = @client
       WHERE id = @id
       END
       ELSE
       BEGIN
       -- Insere um novo registro se o ID não existir
       INSERT INTO dbo.device
-        (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync)
+        (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync, client)
       VALUES
-        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync)
+        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync, @client)
       END;
       """;
 
@@ -92,7 +105,8 @@ public class DeviceRepository implements IRepository<Device> {
         device.getClientId(),
         device.getIsActive(),
         device.getLastUpdate(),
-        device.getLastSync());
+        device.getLastSync(),
+        device.getClient());
   }
 
   public void upsert(Device device) {
@@ -112,7 +126,8 @@ public class DeviceRepository implements IRepository<Device> {
         device.getClientId(),
         device.getIsActive(),
         device.getLastUpdate(),
-        device.getLastSync());
+        device.getLastSync(),
+        device.getClient());
   }
 
   public void batchUpsert(List<Device> devices) {
@@ -137,6 +152,7 @@ public class DeviceRepository implements IRepository<Device> {
           ps.setBoolean(13, device.getIsActive());
           ps.setObject(14, device.getLastUpdate(), Types.DATE);
           ps.setDate(15, device.getLastSync());
+          ps.setString(16, device.getClient());
         });
     log.info("< " + devices.size() + " devices upserted.");
   }
@@ -158,6 +174,7 @@ public class DeviceRepository implements IRepository<Device> {
         device.getIsActive(),
         device.getLastUpdate(),
         device.getLastSync(),
+        device.getClient(),
         device.getId());
   }
 
