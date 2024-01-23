@@ -127,6 +127,27 @@ public class MilvusService {
     }
   }
 
+  public void testSyncDevices() throws IOException {
+    MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
+    try {
+      devices = loadDevices();
+      deviceRepository.batchUpsert(devices.mapToDevices(clientRepository));
+    } catch (Exception e) {
+      log.error("# Error: " + e.getMessage());
+    }
+    Integer lastPage = devices.meta().paginate().last_page();
+    if (lastPage > 1) {
+      for (int i = 2; i <= lastPage; i++) {
+        try {
+          devices = loadDevicesByPage(i);
+          deviceRepository.testBatchUpsert(devices);
+        } catch (Exception e) {
+          log.error("# Error: " + e.getMessage());
+        }
+      }
+    }
+  }
+
   public void syncClients() throws IOException {
     List<Client> clients = new ArrayList<>();
     try {

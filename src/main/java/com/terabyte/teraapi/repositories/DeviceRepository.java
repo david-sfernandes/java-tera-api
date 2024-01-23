@@ -1,6 +1,8 @@
 package com.terabyte.teraapi.repositories;
 
+import java.sql.Date;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.Device;
 import com.terabyte.teraapi.models.mappers.DeviceRowMapper;
+import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 @Repository
 public class DeviceRepository implements IRepository<Device> {
@@ -81,6 +84,55 @@ public class DeviceRepository implements IRepository<Device> {
         (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync, client)
       VALUES
         (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync, @client)
+      END;
+      """;
+  private final String TEST_UPSERT = """
+      DECLARE @id INT = ?,
+          @name VARCHAR(120) = ?,
+          @nickname VARCHAR(120) = ?,
+          @mac VARCHAR(120) = ?,
+          @brand VARCHAR(30) = ?,
+          @os VARCHAR(60) = ?,
+          @processor VARCHAR(100) = ?,
+          @user VARCHAR(30) = ?,
+          @serial VARCHAR(100) = ?,
+          @model VARCHAR(100) = ?,
+          @type VARCHAR(30) = ?,
+          @client VARCHAR(120) = ?,
+          @is_active BIT = ?,
+          @last_update VARCHAR(50) = ?,
+          @last_sync VARCHAR(50) = ?
+      IF EXISTS (SELECT 1
+      FROM dbo.device
+      WHERE id = @id)
+      BEGIN
+      -- Atualiza o registro se o ID existir
+      UPDATE dbo.device
+      SET [name] = @name,
+          [nickname] = @nickname,
+          [mac] = @mac,
+          [brand] = @brand,
+          [os] = @os,
+          [processor] = @processor,
+          [user] = @user,
+          [serial] = @serial,
+          [model] = @model,
+          [type] = @type,
+          [client_id] = @client_id,
+          [is_active] = @is_active,
+          [last_update] = @last_update,
+          [last_sync] = @last_sync,
+          [client] = @client,
+          [client_id] = (SELECT id FROM dbo.client WHERE name = @client)
+      WHERE id = @id
+      END
+      ELSE
+      BEGIN
+      -- Insere um novo registro se o ID não existir
+      INSERT INTO dbo.device
+        (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync, client)
+      VALUES
+        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, (SELECT id FROM dbo.client WHERE name = @client), @is_active, @last_update, @last_sync, @client)
       END;
       """;
 
@@ -157,9 +209,38 @@ public class DeviceRepository implements IRepository<Device> {
     log.info("< " + devices.size() + " devices upserted.");
   }
 
+  public void testBatchUpsert(MilvusDeviceResp devices) {
+    Instant instant = Instant.now();
+    Date lastSync = new Date(instant.toEpochMilli());
+
+    log.info("- Upserting devices...");
+    jdbcTemplate.batchUpdate(
+        UPSERT,
+        devices.lista(),
+        devices.lista().size(),
+        (ps, device) -> {
+          ps.setInt(1, device.id());
+          ps.setString(2, device.hostname());
+          ps.setString(3, device.apelido());
+          ps.setString(4, device.macaddres());
+          ps.setString(5, device.marca());
+          ps.setString(6, device.sistema_operacional());
+          ps.setString(7, device.processador());
+          ps.setString(8, device.usuario_logado());
+          ps.setString(9, device.numero_serial());
+          ps.setString(10, device.modelo_notebook());
+          ps.setString(11, device.tipo_dispositivo_text());
+          ps.setString(12, device.nome_fantasia());
+          ps.setBoolean(13, device.is_ativo());
+          ps.setObject(14, device.data_ultima_atualizacao(), Types.DATE);
+          ps.setDate(15, lastSync);
+        });
+    log.info("< " + devices.lista().size() + " devices upserted.");
+  }
+
   public Integer update(Device device) {
     return jdbcTemplate.update(
-        UPDATE,
+        TEST_UPSERT,
         device.getName(),
         device.getNickname(),
         device.getMac(),
