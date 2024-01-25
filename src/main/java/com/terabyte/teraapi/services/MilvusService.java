@@ -19,7 +19,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.models.Client;
-import com.terabyte.teraapi.models.Device;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.utils.MilvusClientResp;
@@ -46,17 +45,6 @@ public class MilvusService {
     headers.setContentType(MediaType.APPLICATION_JSON);
   }
 
-  public MilvusDeviceResp loadDevices() throws IOException {
-    headers.set("Authorization", milvusKey);
-    entity = new HttpEntity<String>(headers);
-    String url = baseUrl + "/dispositivos/listagem?total_registros=1000&order_by=id&is_descending=false&pagina=1";
-    ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
-    String body = res.getBody();
-    MilvusDeviceResp data = mapper.readValue(body, MilvusDeviceResp.class);
-    log.info("> " + data.lista().size() + " devices loaded");
-    return data;
-  }
-
   public MilvusDeviceResp loadDevicesByPage(Integer page) throws IOException {
     headers.set("Authorization", milvusKey);
     entity = new HttpEntity<String>(headers);
@@ -64,7 +52,11 @@ public class MilvusService {
     ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
     String body = res.getBody();
     MilvusDeviceResp data = mapper.readValue(body, MilvusDeviceResp.class);
-    log.info("> " + data.lista().size() + " devices loaded");
+    if (res.getBody() == null) {
+      log.error("# Error: " + res.getStatusCode());
+      return null;
+    }
+    log.info("> " + data.lista().size() + " devices loaded on page " + page);
     return data;
   }
 
@@ -100,17 +92,15 @@ public class MilvusService {
         }""";
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=10&pagina=" + page;
-    ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-    String body = res.getBody();
-    MilvusTicketResp data = mapper.readValue(body, MilvusTicketResp.class);
-    return data;
+    ResponseEntity<MilvusTicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, MilvusTicketResp.class);
+    return res.getBody();
   }
 
   public void syncDevices() throws IOException {
     MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
     try {
-      devices = loadDevices();
-      deviceRepository.batchUpsert(devices.mapToDevices(clientRepository));
+      devices = loadDevicesByPage(1);
+      deviceRepository.batchUpsert(devices);
     } catch (Exception e) {
       log.error("# Error: " + e.getMessage());
     }
@@ -119,28 +109,7 @@ public class MilvusService {
       for (int i = 2; i <= lastPage; i++) {
         try {
           devices = loadDevicesByPage(i);
-          deviceRepository.batchUpsert(devices.mapToDevices(clientRepository));
-        } catch (Exception e) {
-          log.error("# Error: " + e.getMessage());
-        }
-      }
-    }
-  }
-
-  public void testSyncDevices() throws IOException {
-    MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
-    try {
-      devices = loadDevices();
-      deviceRepository.batchUpsert(devices.mapToDevices(clientRepository));
-    } catch (Exception e) {
-      log.error("# Error: " + e.getMessage());
-    }
-    Integer lastPage = devices.meta().paginate().last_page();
-    if (lastPage > 1) {
-      for (int i = 2; i <= lastPage; i++) {
-        try {
-          devices = loadDevicesByPage(i);
-          deviceRepository.testBatchUpsert(devices);
+          deviceRepository.batchUpsert(devices);
         } catch (Exception e) {
           log.error("# Error: " + e.getMessage());
         }
@@ -159,8 +128,7 @@ public class MilvusService {
     }
   }
 
-  public List<Device> test() throws IOException {
-    MilvusDeviceResp devices = loadDevicesByPage(3);
-    return devices.mapToDevicesTemp(clientRepository);
+  public void deleteOldDevices() {
+    deviceRepository.deleteOldDevices();
   }
 }

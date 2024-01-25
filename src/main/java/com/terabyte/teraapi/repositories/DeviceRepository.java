@@ -49,55 +49,6 @@ public class DeviceRepository implements IRepository<Device> {
           @serial VARCHAR(100) = ?,
           @model VARCHAR(100) = ?,
           @type VARCHAR(30) = ?,
-          @client_id INT = ?,
-          @is_active BIT = ?,
-          @last_update VARCHAR(50) = ?,
-          @last_sync VARCHAR(50) = ?,
-          @client VARCHAR(120) = ?
-      IF EXISTS (SELECT 1
-      FROM dbo.device
-      WHERE id = @id)
-      BEGIN
-      -- Atualiza o registro se o ID existir
-      UPDATE dbo.device
-      SET [name] = @name,
-          [nickname] = @nickname,
-          [mac] = @mac,
-          [brand] = @brand,
-          [os] = @os,
-          [processor] = @processor,
-          [user] = @user,
-          [serial] = @serial,
-          [model] = @model,
-          [type] = @type,
-          [client_id] = @client_id,
-          [is_active] = @is_active,
-          [last_update] = @last_update,
-          [last_sync] = @last_sync,
-          [client] = @client
-      WHERE id = @id
-      END
-      ELSE
-      BEGIN
-      -- Insere um novo registro se o ID não existir
-      INSERT INTO dbo.device
-        (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync, client)
-      VALUES
-        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, @client_id, @is_active, @last_update, @last_sync, @client)
-      END;
-      """;
-  private final String TEST_UPSERT = """
-      DECLARE @id INT = ?,
-          @name VARCHAR(120) = ?,
-          @nickname VARCHAR(120) = ?,
-          @mac VARCHAR(120) = ?,
-          @brand VARCHAR(30) = ?,
-          @os VARCHAR(60) = ?,
-          @processor VARCHAR(100) = ?,
-          @user VARCHAR(30) = ?,
-          @serial VARCHAR(100) = ?,
-          @model VARCHAR(100) = ?,
-          @type VARCHAR(30) = ?,
           @client VARCHAR(120) = ?,
           @is_active BIT = ?,
           @last_update VARCHAR(50) = ?,
@@ -118,12 +69,11 @@ public class DeviceRepository implements IRepository<Device> {
           [serial] = @serial,
           [model] = @model,
           [type] = @type,
-          [client_id] = @client_id,
           [is_active] = @is_active,
           [last_update] = @last_update,
           [last_sync] = @last_sync,
           [client] = @client,
-          [client_id] = (SELECT id FROM dbo.client WHERE name = @client)
+          [client_id] = (SELECT TOP 1 id FROM dbo.client WHERE name = @client)
       WHERE id = @id
       END
       ELSE
@@ -132,9 +82,10 @@ public class DeviceRepository implements IRepository<Device> {
       INSERT INTO dbo.device
         (id, [name], nickname, mac, brand, os, processor, [user], [serial], model, [type], client_id, is_active, last_update, last_sync, client)
       VALUES
-        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, (SELECT id FROM dbo.client WHERE name = @client), @is_active, @last_update, @last_sync, @client)
+        (@id, @name, @nickname, @mac, @brand, @os, @processor, @user, @serial, @model, @type, (SELECT TOP 1 id FROM dbo.client WHERE name = @client), @is_active, @last_update, @last_sync, @client)
       END;
       """;
+  private final String DELETE_OLD_DEVICES = "DELETE FROM dbo.device WHERE [last_sync] < ?;";
 
   public List<Device> getAll() {
     return jdbcTemplate.query(GET_ALL, new DeviceRowMapper());
@@ -182,38 +133,14 @@ public class DeviceRepository implements IRepository<Device> {
         device.getClient());
   }
 
-  public void batchUpsert(List<Device> devices) {
-    log.info("- Upserting devices...");
-    jdbcTemplate.batchUpdate(
-        UPSERT,
-        devices,
-        devices.size(),
-        (ps, device) -> {
-          ps.setInt(1, device.getId());
-          ps.setString(2, device.getName());
-          ps.setString(3, device.getNickname());
-          ps.setString(4, device.getMac());
-          ps.setString(5, device.getBrand());
-          ps.setString(6, device.getOs());
-          ps.setString(7, device.getProcessor());
-          ps.setString(8, device.getUser());
-          ps.setString(9, device.getSerial());
-          ps.setString(10, device.getModel());
-          ps.setString(11, device.getType());
-          ps.setObject(12, device.getClientId(), Types.INTEGER);
-          ps.setBoolean(13, device.getIsActive());
-          ps.setObject(14, device.getLastUpdate(), Types.DATE);
-          ps.setDate(15, device.getLastSync());
-          ps.setString(16, device.getClient());
-        });
-    log.info("< " + devices.size() + " devices upserted.");
-  }
-
-  public void testBatchUpsert(MilvusDeviceResp devices) {
+  public void batchUpsert(MilvusDeviceResp devices) {
     Instant instant = Instant.now();
     Date lastSync = new Date(instant.toEpochMilli());
-
     log.info("- Upserting devices...");
+    if (devices.lista().size() == 0 || devices.lista() == null) {
+      log.info("< No devices to upsert.");
+      return;
+    }
     jdbcTemplate.batchUpdate(
         UPSERT,
         devices.lista(),
@@ -240,7 +167,7 @@ public class DeviceRepository implements IRepository<Device> {
 
   public Integer update(Device device) {
     return jdbcTemplate.update(
-        TEST_UPSERT,
+        UPDATE,
         device.getName(),
         device.getNickname(),
         device.getMac(),
@@ -261,6 +188,14 @@ public class DeviceRepository implements IRepository<Device> {
 
   public Integer delete(Integer id) {
     return jdbcTemplate.update(DELETE, id);
+  }
+
+  public Integer deleteOldDevices() {
+    Instant instant = Instant.now();
+    Date lastSync = new Date(instant.toEpochMilli());
+    Integer deleted = jdbcTemplate.update(DELETE_OLD_DEVICES, lastSync);
+    log.info("< " + deleted + " old devices deleted.");
+    return deleted;
   }
 
   public List<Integer> getIdSecurityStatus(String mac, String name) {

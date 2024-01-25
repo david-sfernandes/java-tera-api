@@ -30,6 +30,7 @@ public class SyncCronConfig {
     try {
       milvusService.syncClients();
       milvusService.syncDevices();
+      milvusService.deleteOldDevices();
       bitdefenderService.syncSecurityStatus();
     } catch (Exception e) {
       log.error("# Error: " + e.getMessage());
