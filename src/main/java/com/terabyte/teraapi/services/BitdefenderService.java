@@ -1,6 +1,7 @@
 package com.terabyte.teraapi.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -43,7 +44,9 @@ public class BitdefenderService {
   private String rootGroupId = "55faa46e3a621503728b457c";
 
   public List<BitGroups> loadNetworkGroups() throws JsonMappingException, JsonProcessingException {
-    String request = generateRequestString("getCustomGroupsList", rootGroupId);
+    HashMap<String, Object> mapParams = new HashMap<>();
+    mapParams.put("parentId", rootGroupId);
+    String request = generateRequestString("getCustomGroupsList", mapParams);
     if (request == null) {
       log.error("Request for loadNetworkGroups is null");
       return new ArrayList<>();
@@ -54,7 +57,9 @@ public class BitdefenderService {
   }
 
   public List<BitGroups> loadCompaniesGroups() throws JsonMappingException, JsonProcessingException {
-    String request = generateRequestString("getNetworkInventoryItems", "55faa46e3a621503728b457a");
+    HashMap<String, Object> mapParams = new HashMap<>();
+    mapParams.put("parentId", "55faa46e3a621503728b457a");
+    String request = generateRequestString("getNetworkInventoryItems", mapParams);
     if (request == null) {
       log.error("Request for loadCompaniesGroups is null");
       return null;
@@ -64,14 +69,35 @@ public class BitdefenderService {
     return res.result().items();
   }
 
-  public List<SecurityStatus> loadStatusByGroupId(@NonNull String groupId, @NonNull String groupName) throws JsonMappingException, JsonProcessingException {
-    String request = generateRequestString("getEndpointsList", groupId);
+  public List<SecurityStatus> loadStatusByGroupId(@NonNull String groupId, @NonNull String groupName)
+      throws JsonMappingException, JsonProcessingException {
+    HashMap<String, Object> mapParams = new HashMap<>();
+    mapParams.put("parentId", groupId);
+    mapParams.put("perPage", 100);
+    String request = generateRequestString("getEndpointsList", mapParams);
     if (request == null) {
       log.error("Request for loadStatusByGroupId is null");
       return null;
     }
     ResponseEntity<String> response = getResponse(request);
     BitEndpointList res = mapper.readValue(response.getBody(), BitEndpointList.class);
+    if (res.result() == null)
+      return new ArrayList<>();
+
+    if (res.result().pagesCount() > 1) {
+      for (int i = 2; i <= res.result().pagesCount(); i++) {
+        mapParams.put("page", i);
+        request = generateRequestString("getEndpointsList", mapParams);
+        if (request == null) {
+          log.error("Request for loadStatusByGroupId is null");
+          return null;
+        }
+        response = getResponse(request);
+        BitEndpointList res2 = mapper.readValue(response.getBody(), BitEndpointList.class);
+        res.result().items().addAll(res2.result().items());
+        mapParams.remove("page");
+      }
+    }
     return res.mapToSecurityStatus(groupName, deviceRepository);
   }
 
@@ -82,8 +108,15 @@ public class BitdefenderService {
     upsertGroupsStatus(groups);
   }
 
-  private String generateRequestString(String method, String parentId) {
-    String params = (parentId == null) ? "{}" : "{\"parentId\": \"" + parentId + "\"}";
+  public String generateRequestString(String method, HashMap<String, Object> mapParams) {
+    String params = "{}";
+    try {
+      if (mapParams.size() > 0) {
+        params = mapper.writeValueAsString(mapParams);
+      }
+    } catch (Exception e) {
+      log.error("Error while parsing params to json: " + e.getMessage());
+    }
     String request = "{\"params\": " + params + ",\"jsonrpc\": \"2.0\",\"method\": \"" + method + "\",\"id\": \"1\"}";
     return request;
   }
@@ -103,7 +136,8 @@ public class BitdefenderService {
         .block();
   }
 
-  private void upsertGroupsStatus(@NonNull List<BitGroups> groups) throws JsonMappingException, JsonProcessingException {
+  private void upsertGroupsStatus(@NonNull List<BitGroups> groups)
+      throws JsonMappingException, JsonProcessingException {
     for (BitGroups group : groups) {
       if (group.id() == null || group.name().isEmpty()) {
         log.error("Group id or name is empty");
