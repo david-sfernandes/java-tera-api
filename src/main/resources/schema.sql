@@ -94,7 +94,7 @@ SELECT c.name,
     COUNT(d.id) AS "qtd",
     SUM(
         CASE
-            WHEN d.last_update > DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
+            WHEN d.last_update < DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
             ELSE 0
         END
     ) AS "qtd_old",
