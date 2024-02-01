@@ -73,6 +73,23 @@ IF NOT EXISTS (
 IF NOT EXISTS (
     SELECT *
     FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'ticket_queue'
+) CREATE TABLE dbo.ticket_queue (
+    [id] INT NOT NULL,
+    [ticket_id] INT,
+    [client_id] INT,
+    [first_date] DATETIME,
+    [second_date] DATETIME,
+    [is_first_open] BIT,
+    [is_second_open] BIT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (client_id) REFERENCES dbo.client (id) ON DELETE
+    SET NULL
+);
+
+IF NOT EXISTS (
+    SELECT *
+    FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_NAME = 'security_status'
 ) CREATE TABLE dbo.security_status (
     [id] VARCHAR(30) NOT NULL,
