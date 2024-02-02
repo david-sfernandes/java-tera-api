@@ -42,6 +42,7 @@ public class MilvusService {
   private HttpHeaders headers = new HttpHeaders();
   private HttpEntity<String> entity = new HttpEntity<String>(headers);
 
+
   private Logger log = LoggerFactory.getLogger("MilvusService");
 
   public MilvusService() {
@@ -100,7 +101,9 @@ public class MilvusService {
   }
 
   public MilvusTicketResp loadNewRuntalentInTickets() throws IOException {
+    // get current date minus 1 day
     Date date = new Date();
+    date.setTime(date.getTime() - 1 * 24 * 60 * 60 * 1000);
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     String currentDate = formatter.format(date);
     
@@ -108,14 +111,14 @@ public class MilvusService {
     String payload = """
           {
             "filtro_body": {
-              "data_hora_criacao_inicial": "2024-01-20 00:00:00",
+              "data_hora_criacao_inicial": "%s 00:00:00",
               "data_hora_criacao_final": "%s 23:59:59",
               "assunto": "Formulario IN Runtalent",
               "cliente_id": 438713
             }
         }""";
-    // payload = String.format(payload, currentDate, currentDate);
-    payload = String.format(payload, currentDate);
+
+    payload = String.format(payload, currentDate, currentDate);
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=100";
     ResponseEntity<MilvusTicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, MilvusTicketResp.class);
@@ -124,47 +127,10 @@ public class MilvusService {
 
   public void createTicket(HashMap<String, String> data) throws IOException {
     headers.set("Authorization", milvusKey);
-    String payload = """
-          {
-            "cliente_id": 438713,
-            "assunto": "Verificação de Inventario (retorno ticket XXXX)",
-            "descricao": "Entrar em contato com usuário e verificar se ele tem algum dispositivo da Runtalent com ele. Caso não tenha questionar se ele tem dispositivo entregue pelo cliente que ele está alocado. Se o usuário tiver uma maquina entregue pelo cliente devemos solicitar a service tag, ou dados de processado, memóaria e HD",
-            "tipo": "SOLICITACAO",
-            "status": "ABERTO",
-            "prioridade": "NORMAL",
-            "categoria_id": 1,
-            "subcategoria_id": 1,
-            "grupo_id": 1,
-            "usuario_id": 1
-          }
-        """;
+    String payload = mapper.writeValueAsString(data);
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/criar";
-    ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-    log.info("> " + res.getBody());
-  }
-
-  public void openRuntalentTicket() {
-    try {
-      MilvusTicketResp tickets = loadNewRuntalentInTickets();
-      if (tickets.lista().size() > 0) {
-        log.info("> " + tickets.lista().size() + " new tickets founded");
-        for (int i = 0; i < tickets.lista().size(); i++) {
-          HashMap<String, String> payload = new HashMap<>();
-          payload.put("cliente_id", "438713");
-          payload.put("chamado_assunto", "Acompanhamento de Formulario IN Runtalent");
-          payload.put("chamado_descricao", "Formulario IN Runtalent");
-          payload.put("chamado_email", "suporte@terabyte.com.br");
-          payload.put("chamado_mesa", "Help Desk");
-          payload.put("chamado_setor", "TI");
-          payload.put("chamado_categoria_primaria", "1");
-          payload.put("chamado_categoria_secundaria", "1");
-          createTicket(payload);
-        }
-      }
-    } catch (Exception e) {
-      log.error("# Error: " + e.getMessage());
-    }
+    restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
   }
 
   public void syncDevices() throws IOException {

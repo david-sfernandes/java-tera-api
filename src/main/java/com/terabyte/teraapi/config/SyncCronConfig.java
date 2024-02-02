@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import com.terabyte.teraapi.services.BitdefenderService;
 import com.terabyte.teraapi.services.MilvusService;
+import com.terabyte.teraapi.services.ScheduleService;
 
 @Configuration
 @EnableScheduling
@@ -20,6 +21,8 @@ public class SyncCronConfig {
   private final MilvusService milvusService = new MilvusService();
   @Autowired
   private final BitdefenderService bitdefenderService = new BitdefenderService();
+  @Autowired
+  private final ScheduleService scheduleService = new ScheduleService();
 
   Logger log = LoggerFactory.getLogger("SyncData");
 
@@ -32,6 +35,7 @@ public class SyncCronConfig {
       milvusService.syncDevices();
       milvusService.deleteOldDevices();
       bitdefenderService.syncSecurityStatus();
+      scheduleService.scheduleRuntalentTickets();
     } catch (Exception e) {
       log.error("# Error: " + e.getMessage());
     }

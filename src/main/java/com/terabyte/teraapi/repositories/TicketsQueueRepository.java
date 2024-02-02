@@ -29,7 +29,10 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
       is_first_open = ?, is_second_open = ?
       WHERE id = ?;
       """;
-  private final String GET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE first_date = ? OR second_date = ?";
+  private final String GET_FIRST_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE first_date = ? AND is_first_open = false";
+  private final String GET_SECOND_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE second_date = ? AND is_second_open = false";
+  private final String UPDATE_IS_FIRST_OPEN = "UPDATE dbo.ticket_queue SET is_first_open = ? WHERE id = ?";
+  private final String UPDATE_IS_SECOND_OPEN = "UPDATE dbo.ticket_queue SET is_second_open = ? WHERE id = ?";
 
   @Override
   public List<TicketsQueue> getAll() {
@@ -67,8 +70,34 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
     return jdbcTemplate.update(DELETE, id);
   }
 
-  public List<TicketsQueue> getByDate(String date) {
-    return jdbcTemplate.query(GET_BY_DATE, new TicketsQueueRowMapper(), date, date);
+  public List<TicketsQueue> getTicketsToOpenFirst(String date) {
+    return jdbcTemplate.query(GET_FIRST_TICKET_BY_DATE, new TicketsQueueRowMapper(), date);
+  }
+
+  public List<TicketsQueue> getTicketsToOpenSecond(String date) {
+    return jdbcTemplate.query(GET_SECOND_TICKET_BY_DATE, new TicketsQueueRowMapper(), date);
+  }
+
+  public void batchUpdateIsFirstOpen(List<TicketsQueue> ticketsQueue, Boolean isFirstOpen) {
+    jdbcTemplate.batchUpdate(
+        UPDATE_IS_FIRST_OPEN,
+        ticketsQueue,
+        ticketsQueue.size(),
+        (ps, tq) -> {
+          ps.setBoolean(1, tq.getIsFirstOpen());
+          ps.setInt(2, tq.getId());
+        });
+  }
+
+  public void batchUpdateIsSecondOpen(List<TicketsQueue> ticketsQueue, Boolean isFirstOpen) {
+    jdbcTemplate.batchUpdate(
+        UPDATE_IS_SECOND_OPEN,
+        ticketsQueue,
+        ticketsQueue.size(),
+        (ps, tq) -> {
+          ps.setBoolean(1, tq.getIsFirstOpen());
+          ps.setInt(2, tq.getId());
+        });
   }
 
   public void batchInsert(List<TicketsQueue> ticketsQueue) {
