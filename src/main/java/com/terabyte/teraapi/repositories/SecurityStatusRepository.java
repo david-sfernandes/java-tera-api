@@ -13,7 +13,7 @@ import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.models.mappers.SecurityStatusRowMapper;
 
 @Repository
-public class SecurityStatusRepository implements IRepository<SecurityStatus> {
+public class SecurityStatusRepository implements JdbcRepository<SecurityStatus> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 

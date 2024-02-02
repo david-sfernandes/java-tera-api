@@ -75,7 +75,7 @@ IF NOT EXISTS (
     FROM INFORMATION_SCHEMA.TABLES
     WHERE TABLE_NAME = 'ticket_queue'
 ) CREATE TABLE dbo.ticket_queue (
-    [id] INT NOT NULL,
+    [id] INT NOT NULL IDENTITY(1, 1),
     [ticket_id] INT,
     [client_id] INT,
     [first_date] DATETIME,

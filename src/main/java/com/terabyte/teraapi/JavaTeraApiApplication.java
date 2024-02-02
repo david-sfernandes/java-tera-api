@@ -4,10 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.terabyte.teraapi.services.ScheduleService;
 
 @SpringBootApplication
 public class JavaTeraApiApplication {
@@ -23,6 +27,17 @@ public class JavaTeraApiApplication {
 			@Override
 			public void addCorsMappings(@NonNull CorsRegistry registry) {
 				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+			}
+		};
+	}
+
+	@Bean
+	ApplicationListener<ApplicationReadyEvent> basicsApplicationListener(ScheduleService scheduleService) {
+		return event -> {
+			try {
+				scheduleService.scheduleRuntalentTickets();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		};
 	}

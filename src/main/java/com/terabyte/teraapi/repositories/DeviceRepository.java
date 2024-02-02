@@ -16,7 +16,7 @@ import com.terabyte.teraapi.models.mappers.DeviceRowMapper;
 import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 @Repository
-public class DeviceRepository implements IRepository<Device> {
+public class DeviceRepository implements JdbcRepository<Device> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 

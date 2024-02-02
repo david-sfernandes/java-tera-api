@@ -14,7 +14,7 @@ import com.terabyte.teraapi.models.mappers.ClientRowMapper;
 import com.terabyte.teraapi.models.mappers.DeviceClientStatsMapper;
 
 @Repository
-public class ClientRepository implements IRepository<Client> {
+public class ClientRepository implements JdbcRepository<Client> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 

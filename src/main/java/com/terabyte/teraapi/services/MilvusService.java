@@ -99,7 +99,7 @@ public class MilvusService {
     return res.getBody();
   }
 
-  public MilvusTicketResp loadNewRuntalentTicketsToSchedule() throws IOException {
+  public MilvusTicketResp loadNewRuntalentInTickets() throws IOException {
     Date date = new Date();
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     String currentDate = formatter.format(date);
@@ -108,13 +108,14 @@ public class MilvusService {
     String payload = """
           {
             "filtro_body": {
-              "data_hora_criacao_inicial": "%s 00:00:00",
-              "data_hora_criacao_final": "%s 2024-01-30 23:59:59",
+              "data_hora_criacao_inicial": "2024-01-20 00:00:00",
+              "data_hora_criacao_final": "%s 23:59:59",
               "assunto": "Formulario IN Runtalent",
               "cliente_id": 438713
             }
         }""";
-    payload = String.format(payload, currentDate, currentDate);
+    // payload = String.format(payload, currentDate, currentDate);
+    payload = String.format(payload, currentDate);
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=100";
     ResponseEntity<MilvusTicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, MilvusTicketResp.class);
@@ -145,7 +146,7 @@ public class MilvusService {
 
   public void openRuntalentTicket() {
     try {
-      MilvusTicketResp tickets = loadNewRuntalentTicketsToSchedule();
+      MilvusTicketResp tickets = loadNewRuntalentInTickets();
       if (tickets.lista().size() > 0) {
         log.info("> " + tickets.lista().size() + " new tickets founded");
         for (int i = 0; i < tickets.lista().size(); i++) {

@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public interface IRepository<T> {
+public interface JdbcRepository<T> {
   @Autowired
   JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
@@ -13,11 +13,9 @@ public interface IRepository<T> {
   String CREATE = "";
   String DELETE = "";
   String UPDATE = "";
-  String UPSERT = "";
 
   public List<T> getAll();
   public Integer create(T t);
   public Integer update(T t);
   public Integer delete(Integer id);
-  public void upsert(T t);
 }

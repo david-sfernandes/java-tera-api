@@ -10,7 +10,7 @@ import com.terabyte.teraapi.models.Ticket;
 import com.terabyte.teraapi.models.mappers.TicketRowMapper;
 
 @Repository
-public class TicketRepository implements IRepository<Ticket> {
+public class TicketRepository implements JdbcRepository<Ticket> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
 

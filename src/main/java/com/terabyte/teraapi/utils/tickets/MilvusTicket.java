@@ -51,5 +51,4 @@ public record MilvusTicket(
         status_sla_solucao(),
         sla().solucao().tempo_gasto());
   }
-
 }
