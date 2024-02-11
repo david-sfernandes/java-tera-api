@@ -2,8 +2,6 @@ package com.terabyte.teraapi.config;
 
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,6 +11,9 @@ import com.terabyte.teraapi.services.BitdefenderService;
 import com.terabyte.teraapi.services.MilvusService;
 import com.terabyte.teraapi.services.ScheduleService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 @EnableScheduling
 public class SyncCronConfig {
@@ -23,8 +24,6 @@ public class SyncCronConfig {
   private final BitdefenderService bitdefenderService = new BitdefenderService();
   @Autowired
   private final ScheduleService scheduleService = new ScheduleService();
-
-  Logger log = LoggerFactory.getLogger("SyncData");
 
   @Scheduled(cron = "0 0 0 * * *")
   public void syncData() {

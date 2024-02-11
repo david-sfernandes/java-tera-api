@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +26,9 @@ import com.terabyte.teraapi.utils.BitEndpointList;
 import com.terabyte.teraapi.utils.BitGroups;
 import com.terabyte.teraapi.utils.BitNetworkGroups;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class BitdefenderService {
   @Value("${bitdefender.key}")
@@ -36,9 +37,7 @@ public class BitdefenderService {
   private SecurityStatusRepository statusRepository = new SecurityStatusRepository();
   @Autowired
   private DeviceRepository deviceRepository = new DeviceRepository();
-
-  private Logger log = LoggerFactory.getLogger("BitdefenderService");
-
+  
   private final String url = "https://cloud.gravityzone.bitdefender.com/api/v1.0/jsonrpc/network";
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";

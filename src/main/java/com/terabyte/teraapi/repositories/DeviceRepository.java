@@ -5,8 +5,6 @@ import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -15,12 +13,13 @@ import com.terabyte.teraapi.models.Device;
 import com.terabyte.teraapi.models.mappers.DeviceRowMapper;
 import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository
 public class DeviceRepository implements JdbcRepository<Device> {
   @Autowired
   private JdbcTemplate jdbcTemplate;
-
-  private Logger log = LoggerFactory.getLogger("DeviceRepository");
 
   private final String GET_ALL = "SELECT * FROM dbo.device";
   private final String GET_ID_SECURYTY_STATUS = "SELECT id FROM dbo.device WHERE (mac = ? OR name = ?)";

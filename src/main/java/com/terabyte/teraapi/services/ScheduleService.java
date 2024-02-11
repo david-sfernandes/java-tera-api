@@ -6,19 +6,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.terabyte.teraapi.models.TicketsQueue;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.TicketsQueueRepository;
 import com.terabyte.teraapi.utils.tickets.MilvusTicket;
 import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
 
-import org.slf4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-import com.terabyte.teraapi.models.TicketsQueue;
-
+@Slf4j
 @Service
 public class ScheduleService {
   @Autowired
@@ -28,10 +27,8 @@ public class ScheduleService {
   @Autowired
   private ClientRepository clientRepository;
 
-  Logger logger = LoggerFactory.getLogger(ScheduleService.class);
-
   public void scheduleRuntalentTickets() {
-    logger.info("Scheduling Runtalent tickets");
+    log.info("Scheduling Runtalent tickets");
     MilvusTicketResp tickets;
     LocalDate currentDate = LocalDate.now();
     List<TicketsQueue> ticketsQueue = new ArrayList<TicketsQueue>();
@@ -39,7 +36,7 @@ public class ScheduleService {
     try {
       tickets = milvusService.loadNewRuntalentInTickets();
     } catch (Exception e) {
-      logger.error("Error loading tickets from Milvus", e);
+      log.error("Error loading tickets from Milvus", e);
       return;
     }
     Integer clientId = clientRepository
@@ -57,12 +54,12 @@ public class ScheduleService {
               .isSecondOpen(false)
               .build());
     }
-    logger.info("Inserting tickets " + ticketsQueue.size() + " into database");
+    log.info("Inserting tickets " + ticketsQueue.size() + " into database");
     ticketsQueueRepository.batchInsert(ticketsQueue);
   }
 
   public void openTicketsFromQueue() {
-    logger.info("Opening tickets from queue");
+    log.info("Opening tickets from queue");
     openFirstRuntalentTickets();
     openSecondRuntalentTickets();
   }
@@ -75,16 +72,16 @@ public class ScheduleService {
       try {
         HashMap<String, String> payload = createTicketPayload(ticket.getTicketId());
         milvusService.createTicket(payload);
-        logger.info(ticketsQueue.size() + " tickets opened successfully on first check");
+        log.info(ticketsQueue.size() + " tickets opened successfully on first check");
         ticketsQueueRepository.batchUpdateIsFirstOpen(ticketsQueue, true);
       } catch (Exception e) {
-        logger.error("Error opening ticket " + ticket.getTicketId(), e);
+        log.error("Error opening ticket " + ticket.getTicketId(), e);
       }
     }
   }
 
   public void openSecondRuntalentTickets() {
-    logger.info("Opening first Runtalent tickets");
+    log.info("Opening first Runtalent tickets");
     String currentDate = LocalDate.now().toString();
     List<TicketsQueue> ticketsQueue = ticketsQueueRepository.getTicketsToOpenSecond(currentDate);
 
@@ -92,10 +89,10 @@ public class ScheduleService {
       try {
         HashMap<String, String> payload = createTicketPayload(ticket.getTicketId());
         milvusService.createTicket(payload);
-        logger.info(ticketsQueue.size() + " tickets opened successfully on second check");
+        log.info(ticketsQueue.size() + " tickets opened successfully on second check");
         ticketsQueueRepository.batchUpdateIsSecondOpen(ticketsQueue, true);
       } catch (Exception e) {
-        logger.error("Error opening ticket " + ticket.getTicketId(), e);
+        log.error("Error opening ticket " + ticket.getTicketId(), e);
       }
     }
   }

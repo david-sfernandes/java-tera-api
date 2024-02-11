@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -28,6 +26,9 @@ import com.terabyte.teraapi.utils.MilvusClientResp;
 import com.terabyte.teraapi.utils.MilvusDeviceResp;
 import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class MilvusService {
   @Value("${milvus.key}")
@@ -41,10 +42,7 @@ public class MilvusService {
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private HttpHeaders headers = new HttpHeaders();
   private HttpEntity<String> entity = new HttpEntity<String>(headers);
-
-
-  private Logger log = LoggerFactory.getLogger("MilvusService");
-
+  
   public MilvusService() {
     headers.setContentType(MediaType.APPLICATION_JSON);
   }
