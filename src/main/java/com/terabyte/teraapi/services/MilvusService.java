@@ -2,12 +2,10 @@ package com.terabyte.teraapi.services;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,8 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.models.Client;
-import com.terabyte.teraapi.repositories.ClientRepository;
-import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.utils.MilvusClientResp;
 import com.terabyte.teraapi.utils.MilvusDeviceResp;
 import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
@@ -33,16 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 public class MilvusService {
   @Value("${milvus.key}")
   private String milvusKey;
-  @Autowired
-  private ClientRepository clientRepository = new ClientRepository();
-  @Autowired
-  private DeviceRepository deviceRepository = new DeviceRepository();
   private final String baseUrl = "https://apiintegracao.milvus.com.br/api";
   private RestTemplate restTemplate = new RestTemplate();
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private HttpHeaders headers = new HttpHeaders();
+  @SuppressWarnings("null")
   private HttpEntity<String> entity = new HttpEntity<String>(headers);
-  
+
   public MilvusService() {
     headers.setContentType(MediaType.APPLICATION_JSON);
   }
@@ -62,6 +55,7 @@ public class MilvusService {
     return data;
   }
 
+  @SuppressWarnings("null")
   public List<Client> loadClients() throws IOException {
     headers.set("Authorization", milvusKey);
     entity = new HttpEntity<String>(headers);
@@ -83,6 +77,7 @@ public class MilvusService {
     return tickets;
   }
 
+  @SuppressWarnings("null")
   public MilvusTicketResp loadTicketsByPage(String page) throws IOException {
     headers.set("Authorization", milvusKey);
     String payload = """
@@ -98,13 +93,14 @@ public class MilvusService {
     return res.getBody();
   }
 
+  @SuppressWarnings("null")
   public MilvusTicketResp loadNewRuntalentInTickets() throws IOException {
     // get current date minus 1 day
     Date date = new Date();
     date.setTime(date.getTime() - 1 * 24 * 60 * 60 * 1000);
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     String currentDate = formatter.format(date);
-    
+
     headers.set("Authorization", milvusKey);
     String payload = """
           {
@@ -123,47 +119,12 @@ public class MilvusService {
     return res.getBody();
   }
 
+  @SuppressWarnings("null")
   public void createTicket(HashMap<String, String> data) throws IOException {
     headers.set("Authorization", milvusKey);
     String payload = mapper.writeValueAsString(data);
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/criar";
     restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-  }
-
-  public void syncDevices() throws IOException {
-    MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
-    try {
-      devices = loadDevicesByPage(1);
-      deviceRepository.batchUpsert(devices);
-    } catch (Exception e) {
-      log.error("# Error: " + e.getMessage());
-    }
-    Integer lastPage = devices.meta().paginate().last_page();
-    if (lastPage > 1) {
-      for (int i = 2; i <= lastPage; i++) {
-        try {
-          devices = loadDevicesByPage(i);
-          deviceRepository.batchUpsert(devices);
-        } catch (Exception e) {
-          log.error("# Error: " + e.getMessage());
-        }
-      }
-    }
-  }
-
-  public void syncClients() throws IOException {
-    List<Client> clients = new ArrayList<>();
-    try {
-      clients = loadClients();
-      log.info("> " + clients.size() + " clients loaded");
-      clientRepository.batchUpsert(clients);
-    } catch (Exception e) {
-      log.error("# Error: " + e.getMessage());
-    }
-  }
-
-  public void deleteOldDevices() {
-    deviceRepository.deleteOldDevices();
   }
 }

@@ -64,7 +64,7 @@ public class ScheduleService {
     openSecondRuntalentTickets();
   }
 
-  public void openFirstRuntalentTickets() {
+  private void openFirstRuntalentTickets() {
     String currentDate = LocalDate.now().toString();
     List<TicketsQueue> ticketsQueue = ticketsQueueRepository.getTicketsToOpenFirst(currentDate);
     
@@ -80,7 +80,7 @@ public class ScheduleService {
     }
   }
 
-  public void openSecondRuntalentTickets() {
+  private void openSecondRuntalentTickets() {
     log.info("Opening first Runtalent tickets");
     String currentDate = LocalDate.now().toString();
     List<TicketsQueue> ticketsQueue = ticketsQueueRepository.getTicketsToOpenSecond(currentDate);

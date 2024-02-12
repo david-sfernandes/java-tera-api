@@ -132,6 +132,7 @@ public class DeviceRepository implements JdbcRepository<Device> {
         device.getClient());
   }
 
+  @SuppressWarnings("null")
   public void batchUpsert(MilvusDeviceResp devices) {
     Instant instant = Instant.now();
     Date lastSync = new Date(instant.toEpochMilli());

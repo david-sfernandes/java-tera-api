@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.repositories.DeviceRepository;
-import com.terabyte.teraapi.repositories.SecurityStatusRepository;
 import com.terabyte.teraapi.utils.BitCompaniesGroups;
 import com.terabyte.teraapi.utils.BitEndpointList;
 import com.terabyte.teraapi.utils.BitGroups;
@@ -34,10 +33,7 @@ public class BitdefenderService {
   @Value("${bitdefender.key}")
   private String bitdefenderKey;
   @Autowired
-  private SecurityStatusRepository statusRepository = new SecurityStatusRepository();
-  @Autowired
   private DeviceRepository deviceRepository = new DeviceRepository();
-  
   private final String url = "https://cloud.gravityzone.bitdefender.com/api/v1.0/jsonrpc/network";
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";
@@ -100,13 +96,6 @@ public class BitdefenderService {
     return res.mapToSecurityStatus(groupName, deviceRepository);
   }
 
-  public void syncSecurityStatus() throws JsonMappingException, JsonProcessingException {
-    List<BitGroups> groups = loadNetworkGroups();
-    upsertGroupsStatus(groups);
-    groups = loadCompaniesGroups();
-    upsertGroupsStatus(groups);
-  }
-
   public String generateRequestString(String method, HashMap<String, Object> mapParams) {
     String params = "{}";
     try {
@@ -133,18 +122,5 @@ public class BitdefenderService {
         .retrieve()
         .toEntity(String.class)
         .block();
-  }
-
-  private void upsertGroupsStatus(@NonNull List<BitGroups> groups)
-      throws JsonMappingException, JsonProcessingException {
-    for (BitGroups group : groups) {
-      if (group.id() == null || group.name().isEmpty()) {
-        log.error("Group id or name is empty");
-        continue;
-      }
-      List<SecurityStatus> statuses = loadStatusByGroupId(group.id(), group.name());
-      log.info("> Load " + group.name() + " - " + statuses.size() + " statuses");
-      statusRepository.batchUpsert(statuses);
-    }
   }
 }
