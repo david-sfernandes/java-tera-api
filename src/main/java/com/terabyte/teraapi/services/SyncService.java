@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class SyncService {
+  @Autowired
   private final MilvusService milvusService = new MilvusService();
+  @Autowired
   private final BitdefenderService bitdefenderService = new BitdefenderService();
+  @Autowired
   private final ClientRepository clientRepository = new ClientRepository();
+  @Autowired
   private final DeviceRepository deviceRepository = new DeviceRepository();
+  @Autowired
   private final SecurityStatusRepository statusRepository = new SecurityStatusRepository();
 
   public void syncDevices() throws IOException {
