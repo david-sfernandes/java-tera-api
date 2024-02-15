@@ -33,6 +33,8 @@ public class SyncService {
   private final DeviceRepository deviceRepository = new DeviceRepository();
   @Autowired
   private final SecurityStatusRepository statusRepository = new SecurityStatusRepository();
+  @Autowired
+  private final ScheduleService scheduleService = new ScheduleService();
 
   public void syncDevices() throws IOException {
     MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
@@ -101,6 +103,8 @@ public class SyncService {
       syncDevices();
       deleteOldDevices();
       syncSecurityStatus();
+      scheduleService.scheduleRuntalentTickets();
+      scheduleService.openTicketsFromQueue();
     } catch (Exception e) {
       log.error("Error on sync all data", e);
     }

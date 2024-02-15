@@ -9,6 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.terabyte.teraapi.models.TicketsQueue;
 import com.terabyte.teraapi.models.mappers.TicketsQueueRowMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository
 public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
   @Autowired
@@ -29,8 +32,8 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
       is_first_open = ?, is_second_open = ?
       WHERE id = ?;
       """;
-  private final String GET_FIRST_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE first_date = ? AND is_first_open = false";
-  private final String GET_SECOND_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE second_date = ? AND is_second_open = false";
+  private final String GET_FIRST_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE first_date = ? AND is_first_open = 0";
+  private final String GET_SECOND_TICKET_BY_DATE = "SELECT * FROM dbo.ticket_queue WHERE second_date = ? AND is_second_open = 0";
   private final String UPDATE_IS_FIRST_OPEN = "UPDATE dbo.ticket_queue SET is_first_open = ? WHERE id = ?";
   private final String UPDATE_IS_SECOND_OPEN = "UPDATE dbo.ticket_queue SET is_second_open = ? WHERE id = ?";
 
@@ -109,5 +112,6 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
       ps.setBoolean(5, tq.getIsFirstOpen());
       ps.setBoolean(6, tq.getIsSecondOpen());
     });
+    log.info(ticketsQueue.size() + " ticket inserted");
   }
 }
