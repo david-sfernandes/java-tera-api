@@ -103,8 +103,6 @@ public class SyncService {
       syncDevices();
       deleteOldDevices();
       syncSecurityStatus();
-      scheduleService.scheduleRuntalentTickets();
-      scheduleService.openTicketsFromQueue();
     } catch (Exception e) {
       log.error("Error on sync all data", e);
     }

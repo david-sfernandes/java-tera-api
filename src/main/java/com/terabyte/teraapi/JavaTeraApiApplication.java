@@ -2,10 +2,14 @@ package com.terabyte.teraapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.terabyte.teraapi.services.SyncService;
 
 @SpringBootApplication
 public class JavaTeraApiApplication {
@@ -23,15 +27,14 @@ public class JavaTeraApiApplication {
     };
   }
 
-  // @Bean
-  // ApplicationListener<ApplicationReadyEvent>
-  // basicsApplicationListener(MilvusService milvusService) {
-  // return event -> {
-  // try {
-
-  // } catch (Exception e) {
-  // e.printStackTrace();
-  // }
-  // };
-  // }
+  @Bean
+  ApplicationListener<ApplicationReadyEvent> basicsApplicationListener(SyncService service) {
+    return event -> {
+      try {
+        // service.syncAllData();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    };
+  }
 }
