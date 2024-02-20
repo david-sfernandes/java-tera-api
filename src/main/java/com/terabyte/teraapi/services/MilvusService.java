@@ -2,6 +2,9 @@ package com.terabyte.teraapi.services;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -126,5 +129,28 @@ public class MilvusService {
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/criar";
     restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+  }
+
+  @SuppressWarnings("null")
+  public TicketResp loadMounthRuntalentInTickets() throws IOException {
+    LocalDate firstDay = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+    LocalDate lastDay = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    headers.set("Authorization", milvusKey);
+    String payload = """
+          {
+            "filtro_body": {
+              "data_hora_criacao_inicial": "%s 00:00:00",
+              "data_hora_criacao_final": "%s 23:59:59",
+              "assunto": "Formulario IN Runtalent",
+              "cliente_id": 438713
+            }
+        }""";
+    payload = String.format(payload, firstDay.format(formatter), lastDay.format(formatter));
+    entity = new HttpEntity<String>(payload, headers);
+    String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=100";
+    ResponseEntity<TicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, TicketResp.class);
+    return res.getBody();
   }
 }

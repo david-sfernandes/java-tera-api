@@ -25,6 +25,16 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
       VALUES
           (?, ?, ?, ?, ?, ?);
         """;
+  private final String CREATE_IF_NOT_EXISTS = """
+      IF NOT EXISTS (SELECT * FROM dbo.ticket_queue WHERE ticket_id = ?)
+      BEGIN
+          INSERT INTO
+          dbo.ticket_queue
+              (ticket_id, client_id, first_date, second_date, is_first_open, is_second_open)
+          VALUES
+              (?, ?, ?, ?, ?, ?);
+      END;
+      """;
   private final String DELETE = "DELETE FROM dbo.ticket_queue WHERE id = ?";
   private final String UPDATE = """
       UPDATE dbo.ticket_queue
@@ -111,6 +121,19 @@ public class TicketsQueueRepository implements JdbcRepository<TicketsQueue> {
       ps.setDate(4, tq.getSecondDate());
       ps.setBoolean(5, tq.getIsFirstOpen());
       ps.setBoolean(6, tq.getIsSecondOpen());
+    });
+    log.info(ticketsQueue.size() + " ticket inserted");
+  }
+
+  public void batchInsertIfNotExists(List<TicketsQueue> ticketsQueue) {
+    jdbcTemplate.batchUpdate(CREATE_IF_NOT_EXISTS, ticketsQueue, ticketsQueue.size(), (ps, tq) -> {
+      ps.setInt(1, tq.getTicketId());
+      ps.setInt(2, tq.getTicketId());
+      ps.setInt(3, tq.getClientId());
+      ps.setDate(4, tq.getFirstDate());
+      ps.setDate(5, tq.getSecondDate());
+      ps.setBoolean(6, tq.getIsFirstOpen());
+      ps.setBoolean(7, tq.getIsSecondOpen());
     });
     log.info(ticketsQueue.size() + " ticket inserted");
   }
