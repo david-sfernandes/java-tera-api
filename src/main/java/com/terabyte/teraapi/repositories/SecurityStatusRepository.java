@@ -9,8 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.SecurityStatus;
+import com.terabyte.teraapi.models.external.securityStatus.BitSecurityStatus;
 import com.terabyte.teraapi.models.mappers.SecurityStatusRowMapper;
-import com.terabyte.teraapi.utils.BitSecurityStatus;
 
 import lombok.extern.slf4j.Slf4j;
 

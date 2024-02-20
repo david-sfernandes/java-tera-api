@@ -1,4 +1,4 @@
-package com.terabyte.teraapi.utils;
+package com.terabyte.teraapi.models.external.securityStatus;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.terabyte.teraapi.utils.tickets;
+package com.terabyte.teraapi.models.external.tickets;
 
 public record MilvusTicket(
     Integer id,
@@ -8,7 +8,7 @@ public record MilvusTicket(
     String tecnico,
     String mesa_trabalho,
     String data_solucao,
-    MilvusTicketDevice dispositivo_vinculado,
+    TicketDevice dispositivo_vinculado,
     String data_resposta,
     String setor,
     String prioridade,
@@ -21,11 +21,11 @@ public record MilvusTicket(
     String origem,
     String status,
     String urgencia,
-    MilvusSla sla,
+    Sla sla,
     String status_sla_resposta,
     String status_sla_solucao) {
-  public MilvusCleanTicket format() {
-    return new MilvusCleanTicket(
+  public CleanTicket format() {
+    return new CleanTicket(
         id(),
         categoria_primaria(),
         categoria_secundaria(),

@@ -1,4 +1,4 @@
-package com.terabyte.teraapi.utils;
+package com.terabyte.teraapi.models.external.securityStatus;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.repositories.DeviceRepository;
 
-public record BitEndpointList(BitEndpointListResults result) {
+public record EndpointList(EndpointListResults result) {
 
   public List<SecurityStatus> mapToSecurityStatus(String group, DeviceRepository deviceRepository) {
     if (result.items() == null)

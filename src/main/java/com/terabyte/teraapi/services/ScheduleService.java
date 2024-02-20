@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.terabyte.teraapi.models.TicketsQueue;
+import com.terabyte.teraapi.models.external.tickets.MilvusTicket;
+import com.terabyte.teraapi.models.external.tickets.TicketResp;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.TicketsQueueRepository;
-import com.terabyte.teraapi.utils.tickets.MilvusTicket;
-import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +29,7 @@ public class ScheduleService {
 
   public void scheduleRuntalentTickets() {
     log.info("Scheduling Runtalent tickets");
-    MilvusTicketResp tickets;
+    TicketResp tickets;
     LocalDate currentDate = LocalDate.now();
     List<TicketsQueue> ticketsQueue = new ArrayList<TicketsQueue>();
 

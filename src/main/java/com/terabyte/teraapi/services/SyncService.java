@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.terabyte.teraapi.models.Client;
+import com.terabyte.teraapi.models.external.devices.DeviceResp;
+import com.terabyte.teraapi.models.external.securityStatus.BitSecurityStatus;
+import com.terabyte.teraapi.models.external.securityStatus.SecurityGroups;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
-import com.terabyte.teraapi.utils.BitGroups;
-import com.terabyte.teraapi.utils.BitSecurityStatus;
-import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class SyncService {
   private final SecurityStatusRepository statusRepository = new SecurityStatusRepository();
 
   public void syncDevices() throws IOException {
-    MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
+    DeviceResp devices = new DeviceResp(new ArrayList<>(), null);
     try {
       devices = milvusService.loadDevicesByPage(1);
       deviceRepository.batchUpsert(devices);
@@ -67,7 +67,7 @@ public class SyncService {
   }
 
   public void syncSecurityStatus() throws JsonMappingException, JsonProcessingException {
-    List<BitGroups> groups = bitdefenderService.loadNetworkGroups();
+    List<SecurityGroups> groups = bitdefenderService.loadNetworkGroups();
     if (groups != null) {
       upsertGroupsStatus(groups);
     }
@@ -82,9 +82,9 @@ public class SyncService {
   }
 
   @SuppressWarnings("null")
-  private void upsertGroupsStatus(@NonNull List<BitGroups> groups)
+  private void upsertGroupsStatus(@NonNull List<SecurityGroups> groups)
       throws JsonMappingException, JsonProcessingException {
-    for (BitGroups group : groups) {
+    for (SecurityGroups group : groups) {
       if (group.id() == null || group.name().isEmpty()) {
         log.error("Group id or name is empty");
         continue;

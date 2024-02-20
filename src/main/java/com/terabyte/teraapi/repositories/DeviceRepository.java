@@ -10,8 +10,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.Device;
+import com.terabyte.teraapi.models.external.devices.DeviceResp;
 import com.terabyte.teraapi.models.mappers.DeviceRowMapper;
-import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -133,7 +133,7 @@ public class DeviceRepository implements JdbcRepository<Device> {
   }
 
   @SuppressWarnings("null")
-  public void batchUpsert(MilvusDeviceResp devices) {
+  public void batchUpsert(DeviceResp devices) {
     Instant instant = Instant.now();
     Date lastSync = new Date(instant.toEpochMilli());
     log.info("- Upserting devices...");

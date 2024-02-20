@@ -1,11 +1,11 @@
-package com.terabyte.teraapi.utils;
+package com.terabyte.teraapi.models.external.clients;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.terabyte.teraapi.models.Client;
 
-public record MilvusClientResp(List<MilvusClient> lista) {
+public record ClientResp(List<ClientData> lista) {
   public List<Client> mapToClient() {
     List<Client> clients = new ArrayList<>();
     lista.forEach((item) -> {

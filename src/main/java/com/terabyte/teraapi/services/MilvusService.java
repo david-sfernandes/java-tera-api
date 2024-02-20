@@ -18,9 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.terabyte.teraapi.models.Client;
-import com.terabyte.teraapi.utils.MilvusClientResp;
-import com.terabyte.teraapi.utils.MilvusDeviceResp;
-import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
+import com.terabyte.teraapi.models.external.clients.ClientResp;
+import com.terabyte.teraapi.models.external.devices.DeviceResp;
+import com.terabyte.teraapi.models.external.tickets.TicketResp;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,13 +40,13 @@ public class MilvusService {
     headers.setContentType(MediaType.APPLICATION_JSON);
   }
 
-  public MilvusDeviceResp loadDevicesByPage(Integer page) throws IOException {
+  public DeviceResp loadDevicesByPage(Integer page) throws IOException {
     headers.set("Authorization", milvusKey);
     entity = new HttpEntity<String>(headers);
     String url = baseUrl + "/dispositivos/listagem?total_registros=1000&order_by=id&is_descending=false&pagina=" + page;
     ResponseEntity<String> res = restTemplate.postForEntity(url, entity, String.class);
     String body = res.getBody();
-    MilvusDeviceResp data = mapper.readValue(body, MilvusDeviceResp.class);
+    DeviceResp data = mapper.readValue(body, DeviceResp.class);
     if (res.getBody() == null) {
       log.error("# Error: " + res.getStatusCode());
       return null;
@@ -62,15 +62,15 @@ public class MilvusService {
     String url = baseUrl + "/cliente/busca";
     ResponseEntity<String> res = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
     String body = res.getBody();
-    MilvusClientResp data = mapper.readValue(body, MilvusClientResp.class);
+    ClientResp data = mapper.readValue(body, ClientResp.class);
     return data.mapToClient();
   }
 
-  public MilvusTicketResp loadTickets() throws IOException {
-    MilvusTicketResp tickets = loadTicketsByPage("1");
+  public TicketResp loadTickets() throws IOException {
+    TicketResp tickets = loadTicketsByPage("1");
     if (tickets.meta().paginate().last_page() > 1) {
       for (Integer i = 2; i <= tickets.meta().paginate().last_page(); i++) {
-        MilvusTicketResp pageData = loadTicketsByPage(i.toString());
+        TicketResp pageData = loadTicketsByPage(i.toString());
         tickets.lista().addAll(pageData.lista());
       }
     }
@@ -78,7 +78,7 @@ public class MilvusService {
   }
 
   @SuppressWarnings("null")
-  public MilvusTicketResp loadTicketsByPage(String page) throws IOException {
+  public TicketResp loadTicketsByPage(String page) throws IOException {
     headers.set("Authorization", milvusKey);
     String payload = """
           {
@@ -89,12 +89,12 @@ public class MilvusService {
         }""";
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=10&pagina=" + page;
-    ResponseEntity<MilvusTicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, MilvusTicketResp.class);
+    ResponseEntity<TicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, TicketResp.class);
     return res.getBody();
   }
 
   @SuppressWarnings("null")
-  public MilvusTicketResp loadNewRuntalentInTickets() throws IOException {
+  public TicketResp loadNewRuntalentInTickets() throws IOException {
     // get current date minus 1 day
     Date date = new Date();
     date.setTime(date.getTime() - 1 * 24 * 60 * 60 * 1000);
@@ -115,7 +115,7 @@ public class MilvusService {
     payload = String.format(payload, currentDate, currentDate);
     entity = new HttpEntity<String>(payload, headers);
     String url = baseUrl + "/chamado/listagem?is_descending=true&order_by=codigo&total_registros=100";
-    ResponseEntity<MilvusTicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, MilvusTicketResp.class);
+    ResponseEntity<TicketResp> res = restTemplate.exchange(url, HttpMethod.POST, entity, TicketResp.class);
     return res.getBody();
   }
 

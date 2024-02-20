@@ -1,6 +1,6 @@
-package com.terabyte.teraapi.utils.tickets;
+package com.terabyte.teraapi.models.external.tickets;
 
-public record MilvusCleanTicket(
+public record CleanTicket(
   Integer id,
   String categoria_primaria,
   String categoria_secundaria,

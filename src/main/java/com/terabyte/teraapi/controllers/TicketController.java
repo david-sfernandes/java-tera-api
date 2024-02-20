@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.terabyte.teraapi.models.external.tickets.CleanTicket;
+import com.terabyte.teraapi.models.external.tickets.TicketResp;
 import com.terabyte.teraapi.services.MilvusService;
-import com.terabyte.teraapi.utils.tickets.MilvusCleanTicket;
-import com.terabyte.teraapi.utils.tickets.MilvusTicketResp;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -19,8 +19,8 @@ public class TicketController {
   private final MilvusService milvusService = new MilvusService();
 
   @GetMapping()
-  public List<MilvusCleanTicket> getTickets() throws IOException {
-    MilvusTicketResp resp = milvusService.loadTickets();
+  public List<CleanTicket> getTickets() throws IOException {
+    TicketResp resp = milvusService.loadTickets();
     return resp.format();
   }
 }

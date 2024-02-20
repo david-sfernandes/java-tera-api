@@ -1,4 +1,4 @@
-package com.terabyte.teraapi.utils;
+package com.terabyte.teraapi.models.external.devices;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -7,9 +7,10 @@ import java.util.stream.Collectors;
 
 import com.terabyte.teraapi.models.Client;
 import com.terabyte.teraapi.models.Device;
+import com.terabyte.teraapi.models.external.Meta;
 import com.terabyte.teraapi.repositories.ClientRepository;
 
-public record MilvusDeviceResp(List<MilvusDevice> lista, MilvusMeta meta) {
+public record DeviceResp(List<DeviceData> lista, Meta meta) {
 
   public List<Device> mapToDevices(ClientRepository clientRepository) {
     Instant instant = Instant.now();

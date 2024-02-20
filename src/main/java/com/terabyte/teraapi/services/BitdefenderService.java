@@ -16,11 +16,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.terabyte.teraapi.utils.BitCompaniesGroups;
-import com.terabyte.teraapi.utils.BitEndpointList;
-import com.terabyte.teraapi.utils.BitGroups;
-import com.terabyte.teraapi.utils.BitNetworkGroups;
-import com.terabyte.teraapi.utils.BitSecurityStatus;
+import com.terabyte.teraapi.models.external.securityStatus.BitSecurityStatus;
+import com.terabyte.teraapi.models.external.securityStatus.CompaniesGroups;
+import com.terabyte.teraapi.models.external.securityStatus.EndpointList;
+import com.terabyte.teraapi.models.external.securityStatus.NetworkGroups;
+import com.terabyte.teraapi.models.external.securityStatus.SecurityGroups;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +33,7 @@ public class BitdefenderService {
   private ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private String rootGroupId = "55faa46e3a621503728b457c";
 
-  public List<BitGroups> loadNetworkGroups() throws JsonMappingException, JsonProcessingException {
+  public List<SecurityGroups> loadNetworkGroups() throws JsonMappingException, JsonProcessingException {
     HashMap<String, Object> mapParams = new HashMap<>();
     mapParams.put("parentId", rootGroupId);
     String request = generateRequestString("getCustomGroupsList", mapParams);
@@ -41,11 +41,11 @@ public class BitdefenderService {
       log.error("Request for loadNetworkGroups is null");
       return new ArrayList<>();
     }
-    BitNetworkGroups groups = getData(request, BitNetworkGroups.class);
+    NetworkGroups groups = getData(request, NetworkGroups.class);
     return groups.result();
   }
 
-  public List<BitGroups> loadCompaniesGroups() throws JsonMappingException, JsonProcessingException {
+  public List<SecurityGroups> loadCompaniesGroups() throws JsonMappingException, JsonProcessingException {
     HashMap<String, Object> mapParams = new HashMap<>();
     mapParams.put("parentId", "55faa46e3a621503728b457a");
     String request = generateRequestString("getNetworkInventoryItems", mapParams);
@@ -53,7 +53,7 @@ public class BitdefenderService {
       log.error("Request for loadCompaniesGroups is null");
       return null;
     }
-    BitCompaniesGroups groups = getData(request, BitCompaniesGroups.class);
+    CompaniesGroups groups = getData(request, CompaniesGroups.class);
     return groups.result().items();
   }
 
@@ -64,7 +64,7 @@ public class BitdefenderService {
     mapParams.put("parentId", groupId);
     mapParams.put("perPage", 100);
     String request = generateRequestString("getEndpointsList", mapParams);
-    BitEndpointList list = getData(request, BitEndpointList.class);
+    EndpointList list = getData(request, EndpointList.class);
     if (list.result() == null)
       return new ArrayList<>();
 
@@ -75,7 +75,7 @@ public class BitdefenderService {
         log.error("Request for loadStatusByGroupId is null");
         return null;
       }
-      BitEndpointList newList = getData(request, BitEndpointList.class);
+      EndpointList newList = getData(request, EndpointList.class);
       list.result().items().addAll(newList.result().items());
       mapParams.remove("page");
     }
