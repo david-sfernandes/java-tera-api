@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.terabyte.teraapi.models.Client;
-import com.terabyte.teraapi.models.SecurityStatus;
 import com.terabyte.teraapi.repositories.ClientRepository;
 import com.terabyte.teraapi.repositories.DeviceRepository;
 import com.terabyte.teraapi.repositories.SecurityStatusRepository;
 import com.terabyte.teraapi.utils.BitGroups;
+import com.terabyte.teraapi.utils.BitSecurityStatus;
 import com.terabyte.teraapi.utils.MilvusDeviceResp;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,6 @@ public class SyncService {
   private final DeviceRepository deviceRepository = new DeviceRepository();
   @Autowired
   private final SecurityStatusRepository statusRepository = new SecurityStatusRepository();
-  @Autowired
-  private final ScheduleService scheduleService = new ScheduleService();
 
   public void syncDevices() throws IOException {
     MilvusDeviceResp devices = new MilvusDeviceResp(new ArrayList<>(), null);
@@ -91,9 +89,9 @@ public class SyncService {
         log.error("Group id or name is empty");
         continue;
       }
-      List<SecurityStatus> statuses = bitdefenderService.loadStatusByGroupId(group.id(), group.name());
+      List<BitSecurityStatus> statuses = bitdefenderService.loadStatusByGroupId(group.id(), group.name());
       log.info("> Load " + group.name() + " - " + statuses.size() + " statuses");
-      statusRepository.batchUpsert(statuses);
+      statusRepository.batchUpsert(statuses, group.name());
     }
   }
 
