@@ -1,5 +1,7 @@
 package com.terabyte.teraapi;
 
+import java.util.Date;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -31,7 +33,9 @@ public class JavaTeraApiApplication {
   ApplicationListener<ApplicationReadyEvent> basicsApplicationListener(SyncService service) {
     return event -> {
       try {
-        // service.syncAllData();
+        System.out.println("\n- Start sync at " + Date.from(new Date().toInstant()));
+        service.syncSecurityStatus();
+        System.out.println("- End sync at " + Date.from(new Date().toInstant()));
       } catch (Exception e) {
         e.printStackTrace();
       }
