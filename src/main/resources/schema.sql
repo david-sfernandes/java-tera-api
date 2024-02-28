@@ -126,23 +126,27 @@ GROUP BY c.name,
     c.category,
     c.is_active;
 
--- CREATE
--- OR ALTER VIEW device_client_stats AS
--- SELECT d.client AS "name",
---     COUNT(d.id) AS "qtd",
---     SUM(
---         CASE
---             WHEN d.last_update > DATEADD(DAY, -45, CURRENT_TIMESTAMP) THEN 1
---             ELSE 0
---         END
---     ) AS "qtd_old",
---     COUNT(ss.id) AS "qtd_security",
---     c.category,
---     c.is_active
--- FROM dbo.device d
---     JOIN dbo.client c ON c.name = d.client
---     JOIN dbo.security_status ss ON ss.device_id = d.id
--- WHERE d.type IN ('Terminal', 'Notebook', 'Servidor')
--- GROUP BY d.client,
---     c.category,
---     c.is_active;
+IF NOT EXISTS (
+    SELECT *
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'log_backup'
+) CREATE TABLE dbo.log_backup (
+    [id] INT NOT NULL IDENTITY(1, 1),
+    [id_device] INT,
+    [type] VARCHAR(15),
+    [start_date] DATETIME,
+    [end_date] DATETIME,
+    [status] VARCHAR(15),
+    [total_dirs] INT,
+    [total_files] INT,
+    [total_size] INT,
+    [copied_dirs] INT,
+    [copied_files] INT,
+    [copied_size] INT,
+    [failed_dirs] INT,
+    [failed_files] INT,
+    [failed_size] INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (id_device) REFERENCES dbo.device (id) ON DELETE
+    SET NULL
+);

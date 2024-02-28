@@ -3,6 +3,7 @@ package com.terabyte.teraapi.models;
 public record BackupLog(
     String hostname,
     String mac,
+    String type,
     String timestampStart,
     String timestampEnd,
     String totalDirs,
