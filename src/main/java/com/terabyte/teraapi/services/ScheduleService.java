@@ -2,6 +2,8 @@ package com.terabyte.teraapi.services;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +60,40 @@ public class ScheduleService {
     ticketsQueueRepository.batchInsert(ticketsQueue);
   }
 
+  public void checkRuntalentTicketsToSchedule() {
+    log.info("Checking this month Runtalent tickets to schedule");
+    TicketResp tickets;
+    List<TicketsQueue> ticketsQueue = new ArrayList<TicketsQueue>();
+
+    try {
+      tickets = milvusService.loadMounthRuntalentInTickets();
+    } catch (Exception e) {
+      log.error("Error loading tickets from Milvus", e);
+      return;
+    }
+    Integer clientId = clientRepository
+        .getByName(tickets.lista().get(0).cliente())
+        .getId();
+
+    for (MilvusTicket ticket : tickets.lista()) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+      LocalDateTime localDateTime = LocalDateTime.parse(ticket.data_criacao(), formatter);
+      LocalDate createAt = localDateTime.toLocalDate();
+
+      ticketsQueue.add(
+          TicketsQueue.builder()
+              .ticketId(ticket.codigo())
+              .clientId(clientId)
+              .firstDate(Date.valueOf(createAt.plusDays(45)))
+              .secondDate(Date.valueOf(createAt.plusDays(90)))
+              .isFirstOpen(false)
+              .isSecondOpen(false)
+              .build());
+    }
+    ticketsQueueRepository.batchInsertIfNotExists(ticketsQueue);
+    log.info("Checking tickets to schedule finished");
+  }
+
   public void openTicketsFromQueue() {
     log.info("Opening tickets from queue");
     openFirstRuntalentTickets();
@@ -67,7 +103,7 @@ public class ScheduleService {
   private void openFirstRuntalentTickets() {
     String currentDate = LocalDate.now().toString();
     List<TicketsQueue> ticketsQueue = ticketsQueueRepository.getTicketsToOpenFirst(currentDate);
-    
+
     for (TicketsQueue ticket : ticketsQueue) {
       try {
         HashMap<String, String> payload = createTicketPayload(ticket.getTicketId());
@@ -100,7 +136,7 @@ public class ScheduleService {
   public HashMap<String, String> createTicketPayload(Integer ticketId) {
     HashMap<String, String> payload = new HashMap<>();
     // Milvus API use the client TOKEN instead of the client ID
-    payload.put("cliente_id", "7GZX9I"); 
+    payload.put("cliente_id", "7GZX9I");
     payload.put("chamado_assunto", "Verificação de Inventario (retorno ticket " + ticketId.toString() + ")");
     payload.put("chamado_descricao",
         "Entrar em contato com usuário e verificar se ele tem algum dispositivo da Runtalent com ele. Caso não tenha questionar se ele tem dispositivo entregue pelo cliente que ele está alocado. Se o usuário tiver uma maquina entregue pelo cliente devemos solicitar a service tag, ou dados de processado, memória e HD");
