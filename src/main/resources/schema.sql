@@ -136,7 +136,7 @@ IF NOT EXISTS (
     [type] VARCHAR(15),
     [start_date] DATETIME,
     [end_date] DATETIME,
-    [status] VARCHAR(15),
+    [has_error] BIT,
     [total_dirs] INT,
     [total_files] INT,
     [total_size] INT,
