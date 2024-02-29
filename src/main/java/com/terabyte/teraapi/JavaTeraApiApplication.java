@@ -29,12 +29,12 @@ public class JavaTeraApiApplication {
     };
   }
 
-  @Bean
+   @Bean
   ApplicationListener<ApplicationReadyEvent> basicsApplicationListener(SyncService service) {
     return event -> {
       try {
         System.out.println("\n- Start sync at " + Date.from(new Date().toInstant()));
-        service.syncSecurityStatus();
+        service.syncAllData();
         System.out.println("- End sync at " + Date.from(new Date().toInstant()));
       } catch (Exception e) {
         e.printStackTrace();

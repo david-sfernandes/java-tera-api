@@ -129,8 +129,8 @@ GROUP BY c.name,
 IF NOT EXISTS (
     SELECT *
     FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_NAME = 'log_backup'
-) CREATE TABLE dbo.log_backup (
+    WHERE TABLE_NAME = 'backup_log'
+) CREATE TABLE dbo.backup_log (
     [id] INT NOT NULL IDENTITY(1, 1),
     [id_device] INT,
     [type] VARCHAR(15),

@@ -23,6 +23,8 @@ public class BackupLogController {
 
     @PostMapping
     public String saveLog(@RequestBody BackupLog backupLog) {
+        log.info("Log received");
+        System.out.println(backupLog);
         backupLogRepository.create(backupLog);
         return "OK";
     }
