@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.terabyte.teraapi.models.BackupLog;
+import com.terabyte.teraapi.models.BackupLogRequest;
 import com.terabyte.teraapi.repositories.BackupLogRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ public class BackupLogController {
     private BackupLogRepository backupLogRepository;
 
     @PostMapping
-    public String saveLog(@RequestBody BackupLog backupLog) {
+    public String saveLog(@RequestBody BackupLogRequest backupLog) {
         log.info("Log received");
         System.out.println(backupLog);
         backupLogRepository.create(backupLog);

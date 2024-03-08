@@ -1,19 +1,21 @@
 package com.terabyte.teraapi.models;
 
 public record BackupLog(
-    String hostname,
-    String mac,
+    Integer id,
+    Integer idDevice,
     String type,
-    String timestampStart,
-    String timestampEnd,
-    String totalDirs,
-    String totalFiles,
-    String totalMBytes,
-    String copiedDirs,
-    String copiedFiles,
-    String copiedMBytes,
-    String failedDirs,
-    String failedFiles,
-    String failedMBytes) {
-
+    String startDate,
+    String endDate,
+    Boolean hasError,
+    Integer totalDirs,
+    Integer totalFiles,
+    Integer totalSize,
+    Integer copiedDirs,
+    Integer copiedFiles,
+    Integer copiedSize,
+    Integer failedDirs,
+    Integer failedFiles,
+    Integer failedSize
+) {
+    
 }

@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.terabyte.teraapi.models.BackupLog;
+import com.terabyte.teraapi.models.BackupLogRequest;
 import com.terabyte.teraapi.models.mappers.BackupLogRowMapper;
 
 @Repository
@@ -24,7 +25,7 @@ public class BackupLogRepository {
           ((SELECT TOP 1 id FROM dbo.device WHERE (mac = ? OR name = ?)), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """;
 
-  public Integer create(BackupLog backupLog) {
+  public Integer create(BackupLogRequest backupLog) {
     try {
       System.out.println(backupLog.timestampStart());
       System.out.println(Timestamp.valueOf(backupLog.timestampStart()));
