@@ -4,12 +4,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 
 import com.terabyte.teraapi.models.BackupLog;
 
 public class BackupLogRowMapper implements RowMapper<BackupLog> {
     @Override
-    public BackupLog mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public BackupLog mapRow(@NonNull ResultSet rs, int rowNum) throws SQLException {
         return new BackupLog(
                 rs.getInt("id"),
                 rs.getInt("id_device"),

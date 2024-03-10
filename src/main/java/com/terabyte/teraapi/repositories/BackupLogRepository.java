@@ -1,6 +1,5 @@
 package com.terabyte.teraapi.repositories;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
